@@ -6,33 +6,11 @@ import {expect} from 'chai'
 import * as request from 'supertest'
 import {verify} from 'jsonwebtoken'
 import promisify from 'fourdollar.promisify'
-// import {Server} from '../app'
 import {secret} from '../config'
 import server from './testserver'
 
 
 describe('test graphql ----------', () => {
-  // const server = request(new Server().application.listen(1818))
-
-  it('echo', async () => {
-    const test = server.post('/graphql')
-    const res: request.Response = await promisify(
-      test.send({
-        query: `
-        {
-          re: echo(message: "Hello World")
-        }
-        `,
-      })
-      .expect('Content-Type', /json/)
-      .expect(200)
-      .end, test)()
-    expect(res.body).to.be.a('object')
-    expect(res.body).to.have.property('data')
-    expect(res.body.data).to.have.property('re')
-    expect(res.body.data.re).to.equal('received Hello World')
-  })
-
   it('createUser', async () => {
     const test = server.post('/graphql')
     const res: request.Response = await promisify(
@@ -43,7 +21,6 @@ describe('test graphql ----------', () => {
             username: "bynaki"
             password: "pwd"
             email: "bynaki@email.com"
-            phone: "010-0000-0000"
           }) {
             id
             username
@@ -53,7 +30,6 @@ describe('test graphql ----------', () => {
             username: "hello"
             password: "pwd"
             email: "hello@email.com"
-            phone: "010-111-1111"
           }) {
             id
             username
@@ -63,11 +39,12 @@ describe('test graphql ----------', () => {
             username: "rozio"
             password: "pwd"
             email: "rozio@email.com"
-            phone: "010-222-3333"
           }) {
             id
             username
             email
+            created_at
+            updated_at
           }
         }
         `
@@ -84,7 +61,12 @@ describe('test graphql ----------', () => {
       email: 'bynaki@email.com',
     })
     expect(res.body.data.hello.username).to.be.equal('hello')
-    expect(res.body.data.rozio.email).to.be.equal('rozio@email.com')
+    const rozio = res.body.data.rozio
+    expect(rozio.email).to.be.equal('rozio@email.com')
+    expect(new Date(parseInt(rozio.created_at)).toString())
+      .to.be.not.equal('Invalid Date')
+    expect(new Date(parseInt(rozio.updated_at)).toString())
+      .to.be.not.equal('Invalid Date')
   })
 
   it('user', async () => {
@@ -171,7 +153,6 @@ describe('test graphql ----------', () => {
             id
             username
             email
-            phone
           }
         }
         `
@@ -214,7 +195,6 @@ describe('test graphql ----------', () => {
               id
               username
               email
-              phone
             }
           }
           `
@@ -228,7 +208,6 @@ describe('test graphql ----------', () => {
         id: '1',
         username: 'bynaki',
         email: 'bynaki@email.com',
-        phone: '010-0000-0000',
       })
     })
 
@@ -243,7 +222,6 @@ describe('test graphql ----------', () => {
               id
               username
               email
-              phone
             }
           }
           `
@@ -257,7 +235,6 @@ describe('test graphql ----------', () => {
         id: '1',
         username: 'bynaki',
         email: 'bynaki@email.com',
-        phone: '010-0000-0000',
       })
     })
 
@@ -272,13 +249,12 @@ describe('test graphql ----------', () => {
               id
               username
               email
-              phone
             }
           }
           `
         })
         .expect('Content-Type', /json/)
-        .expect(500)
+        .expect(401)
         .end
       , test)()
       expect(res.body.errors[0].message).to.be.equal(

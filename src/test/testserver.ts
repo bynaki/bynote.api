@@ -3,4 +3,3 @@ import {Server} from '../app'
 
 
 export default request(new Server().application.listen(1818))
-console.log('testserver.ts')

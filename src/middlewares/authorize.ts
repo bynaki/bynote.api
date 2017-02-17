@@ -6,7 +6,9 @@
 import * as jwt from 'jsonwebtoken'
 import {Request, Response, NextFunction} from 'express'
 import promisify from 'fourdollar.promisify'
-import {GraphqlErrorMessages} from '../utils'
+import {
+  ErrorWithStatusCode
+} from '../utils'
 import {
   IDecodedToken
 } from '../interface'
@@ -43,6 +45,6 @@ export default async function authorize(
     next()
   } catch(err) {
     // if it has failed to verify, it will return an error message
-    next(err)
+    next(new ErrorWithStatusCode((err as Error).message, 401))
   }
 }

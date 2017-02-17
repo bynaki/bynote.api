@@ -27,7 +27,8 @@ export async function database(): Promise<Knex> {
     table.string('username')
     table.string('password')
     table.string('email')
-    table.string('phone')
+    table.timestamp('created_at')
+    table.timestamp('updated_at')
   })
   _knex = knex
   return knex
@@ -67,7 +68,9 @@ export function encrypt(src: string): string {
           .digest('base64')
 }
 
-
+/**
+ * status code 와 함께 Error 객체
+ */
 export class ErrorWithStatusCode extends Error {
   private _sc: number
 

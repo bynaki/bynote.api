@@ -6,11 +6,12 @@ export interface IUser {
   id: string
   username: string
   email: string
+  created_at: string
+  updated_at: string
 }
 
 export interface IAuthorizer extends IUser {
   password: string
-  phone: string
 }
 
 export interface IAuthInput {
@@ -20,7 +21,6 @@ export interface IAuthInput {
 
 export interface IUserInput extends IAuthInput {
   email: string
-  phone?: string
 }
 
 

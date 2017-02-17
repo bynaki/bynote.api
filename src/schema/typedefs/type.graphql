@@ -2,6 +2,8 @@ interface IUser {
   id: String
   username: String
   email: String
+  created_at: String
+  updated_at: String
 }
 
 # 유저 정보
@@ -9,6 +11,8 @@ type User implements IUser {
   id: String
   username: String
   email: String
+  created_at: String
+  updated_at: String
 }
 
 # 인증된 유저 정보
@@ -16,7 +20,8 @@ type Authorizer implements IUser {
   id: String
   username: String
   email: String
-  phone: String
+  created_at: String
+  updated_at: String
 }
 
 # 등록할 유저 정보
@@ -24,5 +29,4 @@ input UserInput {
   username: String!
   password: String!
   email: String!
-  phone: String
 }

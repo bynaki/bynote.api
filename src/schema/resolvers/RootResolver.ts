@@ -11,7 +11,6 @@ import {database, encrypt} from '../../utils'
 import {
   IUser,
   IAuthorizer,
-  IAuthInput,
   IUserInput,
 } from '../../interface'
 import {registeredClaim} from '../../config'
@@ -19,10 +18,6 @@ import {registeredClaim} from '../../config'
 
 export default class RootResolver {
   constructor() {
-  }
-
-  echo({message}: {message: string}, req: Request): string {
-    return `received ${message}`
   }
 
   async user(query: {id?: string, username?: string}): Promise<IUser> {
@@ -42,16 +37,20 @@ export default class RootResolver {
     throw new Error('must be authenticate!!')
   }
 
-  /**
-   * Mutation
-   */
+
+  //
+  // Mutation
+
   async createUser({input}: {input: IUserInput}): Promise<IUser> {
     const knex = await database()
     if((await this._findUsers({username: input.username})).length != 0) {
       throw new Error('username exists')
     }
-    const userInput = _.clone<IUserInput>(input)
+    const userInput: IAuthorizer = _.clone<IUserInput>(input) as IAuthorizer
     userInput.password = encrypt(userInput.password)
+    const now = Date.now().toString()
+    userInput.created_at = now
+    userInput.updated_at = now
     const ids: any[] = await knex('user').insert(userInput)
     return await this.user({id: ids[0]})
   }
@@ -80,13 +79,14 @@ export default class RootResolver {
     return token
   }
 
-  /**
-   * protected
-   */
+
+  //
+  // protected
+
   protected async _findUsers(query?: any): Promise<IUser[]> {
     const knex = await database()
     const users: IUser[] = await knex('user')
-      .select('id', 'username', 'email').where(query)
+      .select('id', 'username', 'email', 'created_at', 'updated_at').where(query)
     return users
   }
 

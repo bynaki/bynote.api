@@ -1,4 +1,4 @@
-# bynote api
+# byNote API
 
 
 ## Usage

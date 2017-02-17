@@ -13,6 +13,8 @@ import {secret} from './config'
 import {schema, RootResolver, RootAuthResolver} from './schema'
 import authorize from './middlewares/authorize'
 import {GraphqlErrorMessages, ErrorWithStatusCode} from './utils'
+import {IDecodedToken} from './interface'
+
 
 export class Server {
   private app: express.Application
@@ -38,8 +40,8 @@ export class Server {
 
     this.app.use('/static/:username'
       , (req: Request, res: Response, next: NextFunction) => {
-      const decoded = req['decoded']
-      if(decoded && req.param('username') === decoded) {
+      const decoded: IDecodedToken = req['decoded']
+      if(decoded && req.params.username === decoded.username) {
         next()
       } else {
         throw new ErrorWithStatusCode('Forbidden', 403)

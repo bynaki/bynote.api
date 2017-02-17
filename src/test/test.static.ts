@@ -6,20 +6,17 @@ import {expect} from 'chai'
 import * as request from 'supertest'
 import {verify} from 'jsonwebtoken'
 import promisify from 'fourdollar.promisify'
-import {Server} from '../app'
 import {secret} from '../config'
+import server from './testserver'
 
 
 describe('test static ----------', () => {
-  const server = request(new Server().application.listen(2828))
-
   before(async () => {
     const process01 = server.post('/graphql')
-    await promisify(
-      process01.send({
+      .send({
         query: `
         mutation {
-          createUser(
+          foobar: createUser(
             input: {
               username: "foobar"
               password: "pwd"
@@ -29,13 +26,23 @@ describe('test static ----------', () => {
             id
             username
           }
+          myfriend: createUser(
+            input: {
+              username: "myfriend"
+              password: "pwd"
+              email: "myfriend@email.com"
+            }
+          ) {
+            id
+            username
+          }
         }
         `
       })
-      .end, process01)()
+    await promisify(process01.end, process01)()
+
     const process02 = server.post('/graphql')
-    const res: request.Response = await promisify(
-      process02.send({
+      .send({
         query: `
         mutation {
           token: createToken(
@@ -46,12 +53,37 @@ describe('test static ----------', () => {
         }
         `
       })
-      .end, process02)()
+    const res: request.Response = await promisify(process02.end, process02)()
     token = res.body.data.token
   })
   let token: string
 
-  it('aaa', () => {
-    console.log('token: ', token)
+  it('인증이 안되면 static에 접근할 수 없다.', async () => {
+    const test = server.get('/static/foobar/hello.json')
+      .expect(403)
+      .expect('Content-Type', /json/)
+    const res: request.Response = await promisify(test.end, test)()
+    expect(res.body).to.have.property('errors')
+    expect(res.body.errors[0].message).to.be.equal('Forbidden')
+  })
+
+  it('인증하고 static에 정상적으로 접근한다.', async () => {
+    const test = server.get('/static/foobar/hello.json')
+      .set('x-access-token', token)
+      .expect(200)
+      .expect('Content-Type', /json/)
+    const res: request.Response = await promisify(test.end, test)()
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.be.equal('Hello World!')
+  })
+
+  it('다른 author의 static에 접근할 수 없다.', async () => {
+    const test = server.get('/static/myfriend/hello.json')
+      .set('x-access-token', token)
+      .expect(403)
+      .expect('Content-Type', /json/)
+    const res: request.Response = await promisify(test.end, test)()
+    expect(res.body).to.have.property('errors')
+    expect(res.body.errors[0].message).to.be.equal('Forbidden')
   })
 })

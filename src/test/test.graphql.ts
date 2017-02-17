@@ -6,12 +6,13 @@ import {expect} from 'chai'
 import * as request from 'supertest'
 import {verify} from 'jsonwebtoken'
 import promisify from 'fourdollar.promisify'
-import {Server} from '../app'
+// import {Server} from '../app'
 import {secret} from '../config'
+import server from './testserver'
 
 
 describe('test graphql ----------', () => {
-  const server = request(new Server().application.listen(1818))
+  // const server = request(new Server().application.listen(1818))
 
   it('echo', async () => {
     const test = server.post('/graphql')

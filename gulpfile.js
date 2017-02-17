@@ -125,10 +125,46 @@ gulp.task('test', ['build'], () => {
 })
 
 /**
+ * test.graphql
+ */
+gulp.task('test.graphql', ['build'], () => {
+  return gulp.src('build/test/test.graphql.js', {read: false})
+  .pipe(mocha({
+    // report 종류
+    R: 'spec',
+  }))
+})
+
+/**
+ * test.static
+ */
+gulp.task('test.static', ['build'], () => {
+  return gulp.src('build/test/test.static.js', {read: false})
+  .pipe(mocha({
+    // report 종류
+    R: 'spec',
+  }))
+})
+
+/**
  * test.watch
  */
 gulp.task('test.watch', ['test'], () => {
   gulp.watch('src/**/**', ['test'])
+})
+
+/**
+ * test.graphql.watch
+ */
+gulp.task('test.graphql.watch', ['test.graphql'], () => {
+  gulp.watch('src/**/**', ['test.graphql'])
+})
+
+/**
+ * test.static.watch
+ */
+gulp.task('test.static.watch', ['test.static'], () => {
+  gulp.watch('src/**/**', ['test.static'])
 })
 
 /**

@@ -18,7 +18,7 @@ export async function database(): Promise<Knex> {
   const knex = Knex({
     client: 'sqlite3',
     connection: {
-      filename: resolve(__dirname, '../../mydb.sqlite'),
+      filename: resolve(__dirname, 'mydb.sqlite'),
     }
   })
   await knex.schema.dropTableIfExists('user')
@@ -65,4 +65,18 @@ export function encrypt(src: string): string {
   return createHmac('sha1', secret)
           .update(src)
           .digest('base64')
+}
+
+
+export class ErrorWithStatusCode extends Error {
+  private _sc: number
+
+  constructor(message?: string, statusCode: number = 500) {
+    super(message)
+    this._sc = statusCode
+  }
+
+  get statusCode() {
+    return this._sc
+  }
 }

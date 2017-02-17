@@ -8,10 +8,11 @@ import * as bodyParser from 'body-parser'
 import {GraphQLError, GraphQLFormattedError} from 'graphql'
 import * as graphqlHTTP from 'express-graphql'
 import * as morgan from 'morgan'
+import {resolve} from 'path'
 import {secret} from './config'
 import {schema, RootResolver, RootAuthResolver} from './schema'
 import authorize from './middlewares/authorize'
-import {GraphqlErrorMessages} from './utils'
+import {GraphqlErrorMessages, ErrorWithStatusCode} from './utils'
 
 export class Server {
   private app: express.Application
@@ -35,32 +36,17 @@ export class Server {
     // authentication middleware
     this.app.use(authorize)
 
-    // this.app.use('/graphql', graphqlHTTP({
-    //   schema,
-    //   rootValue,
-    //   graphiql: true,
-    // }))
+    this.app.use('/static/:username'
+      , (req: Request, res: Response, next: NextFunction) => {
+      const decoded = req['decoded']
+      if(decoded && req.param('username') === decoded) {
+        next()
+      } else {
+        throw new ErrorWithStatusCode('Forbidden', 403)
+      }
+    })
 
-    // this.app.use('/graphql', (req: Request, res: Response, next: NextFunction) => {
-    //   graphqlHTTP((req: Request) => {
-    //     const decodedToken = req['decoded']
-    //     if(decodedToken) {
-    //       return {
-    //         schema,
-    //         rootValue: new RootAuthResolver(decodedToken),
-    //         graphiql: true,
-    //         formatError: formatError(req, res, next),
-    //       }
-    //     } else {
-    //       return {
-    //         schema,
-    //         rootValue: new RootResolver(),
-    //         graphiql: true,
-    //         formatError: formatError(req, res, next),
-    //       }
-    //     }
-    //   })(req, res)
-    // })
+    this.app.use('/static', express.static(resolve(__dirname, '../static')))
 
     // graphql middleware
     this.app.use('/graphql', graphqlHTTP((req: Request) => {
@@ -81,8 +67,9 @@ export class Server {
     }))
 
     // 내부 에러 처리
-    this.app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-      res.status(500).json({
+    this.app.use((err: ErrorWithStatusCode, req: Request, res: Response, next: NextFunction) => {
+      let statusCode = (err.statusCode)? err.statusCode : 500
+      res.status(statusCode).json({
         errors: new GraphqlErrorMessages((err as Error).message).errors
       })
     })

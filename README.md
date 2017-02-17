@@ -1,4 +1,4 @@
-# GraphQL Starter Kit
+# bynote api
 
 
 ## Usage
@@ -29,22 +29,6 @@ GraphiQL:
 ## config.ts
 - 보안이 필요한 설정 파일
 - config.base.ts 를 config.ts로 복사해 사용.
-
-
-## d.ts
-
-```bash
-$ npm install --save @types/node
-```
-
-
-## Remote Debugging
-
-```bash
-$ node --debug=5858 app.js  # 서버측 실행 5858 port
-# or
-$ node --debug-brk app.js   # 첫번째 라인에서 브레이크, 대기
-```
 
 
 ## Reference

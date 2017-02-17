@@ -1,5 +1,5 @@
 /**
- * test
+ * test graphql
  */
 
 import {expect} from 'chai'
@@ -10,7 +10,7 @@ import {Server} from '../app'
 import {secret} from '../config'
 
 
-describe('test app', () => {
+describe('test graphql ----------', () => {
   const server = request(new Server().application.listen(1818))
 
   it('echo', async () => {
@@ -58,10 +58,10 @@ describe('test app', () => {
             username
             email
           }
-          foobar: createUser(input: {
-            username: "foobar"
+          rozio: createUser(input: {
+            username: "rozio"
             password: "pwd"
-            email: "foobar@email.com"
+            email: "rozio@email.com"
             phone: "010-222-3333"
           }) {
             id
@@ -83,7 +83,7 @@ describe('test app', () => {
       email: 'bynaki@email.com',
     })
     expect(res.body.data.hello.username).to.be.equal('hello')
-    expect(res.body.data.foobar.email).to.be.equal('foobar@email.com')
+    expect(res.body.data.rozio.email).to.be.equal('rozio@email.com')
   })
 
   it('user', async () => {

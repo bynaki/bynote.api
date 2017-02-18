@@ -12,9 +12,8 @@ import server from './testserver'
 
 describe('test graphql ----------', () => {
   it('createUser', async () => {
-    const test = server.post('/graphql')
-    const res: request.Response = await promisify(
-      test.send({
+    const res: request.Response = await server.post('/graphql')
+      .send({
         query: `
         mutation {
           bynaki: createUser(input: {
@@ -51,7 +50,6 @@ describe('test graphql ----------', () => {
       })
       .expect('Content-Type', /json/)
       .expect(200)
-      .end, test)()
     expect(res.body).to.be.a('object')
     expect(res.body).to.have.property('data')
     expect(res.body.data).to.have.property('bynaki')
@@ -70,9 +68,8 @@ describe('test graphql ----------', () => {
   })
 
   it('user', async () => {
-    const test = server.post('/graphql')
-    const res: request.Response = await promisify(
-      test.send({
+    const res: request.Response = await server.post('/graphql')
+      .send({
         query: `
         {
           user(username: "bynaki") {
@@ -84,7 +81,6 @@ describe('test graphql ----------', () => {
       })
       .expect('Content-Type', /json/)
       .expect(200)
-      .end, test)()
     expect(res.body).to.be.a('object')
     expect(res.body).to.have.property('data')
     expect(res.body.data).to.have.property('user') 
@@ -93,11 +89,11 @@ describe('test graphql ----------', () => {
       email: 'bynaki@email.com',
     })
   })
-
+  
   it('users', async () => {
-    const test = server.post('/graphql')
-    const res: request.Response = await promisify(
-      test.send({
+    server.post('/graphql')
+    const res: request.Response = await server.post('/graphql')
+      .send({
         query: `
         {
           users {
@@ -110,7 +106,6 @@ describe('test graphql ----------', () => {
       })
       .expect('Content-Type', /json/)
       .expect(200)
-      .end, test)()
     expect(res.body).to.be.a('object')
     expect(res.body).to.have.property('data')
     expect(res.body.data).to.have.property('users')
@@ -118,9 +113,8 @@ describe('test graphql ----------', () => {
   })
 
   it('createToken', async () => {
-    const test = server.post('/graphql')
-    const res: request.Response = await promisify(
-      test.send({
+    const res: request.Response = await server.post('/graphql')
+      .send({
         query: `
         mutation {
           token: createToken(
@@ -133,7 +127,6 @@ describe('test graphql ----------', () => {
       })
       .expect('Content-Type', /json/)
       .expect(200)
-      .end, test)()
     expect(res.body.data).to.have.property('token')
     const token = res.body.data.token
     expect(token).to.be.not.null
@@ -145,8 +138,8 @@ describe('test graphql ----------', () => {
 
   it('인증되지 않은 상태에서 myProfile를 query하면 에러가 난다.', async () => {
     const test = server.post('/graphql')
-    const res: request.Response = await promisify(
-      test.send({
+    const res: request.Response = await server.post('/graphql')
+      .send({
         query: `
         {
           myProfile {
@@ -159,8 +152,6 @@ describe('test graphql ----------', () => {
       })
       .expect('Content-Type', /json/)
       .expect(200)
-      .end
-    , test)()
     expect(res.body.data.myProfile).to.be.null
     expect(res.body.errors[0].message).to.be.equal('must be authenticate!!')
   })
@@ -169,25 +160,24 @@ describe('test graphql ----------', () => {
     let token
 
     before(async () => {
-      const test = server.post('/graphql')
-      const res: request.Response = await promisify(test.send({
-        query: `
-        mutation {
-          token: createToken(
-            username: "bynaki"
-            password: "pwd"
-            expiresIn: "1d"
-          )
-        }
-        `
-      }).end, test)()
+      const res: request.Response = await server.post('/graphql')
+        .send({
+          query: `
+          mutation {
+            token: createToken(
+              username: "bynaki"
+              password: "pwd"
+              expiresIn: "1d"
+            )
+          }
+          `
+        })
       token = res.body.data.token
     })
 
     it('myProfile > header로 token', async () => {
-      const test = server.post('/graphql')
-      const res: request.Response = await promisify(
-        test.set('x-access-token', token)
+      const res: request.Response = await server.post('/graphql')
+        .set('x-access-token', token)
         .send({
           query: `
           {
@@ -201,8 +191,6 @@ describe('test graphql ----------', () => {
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end
-      , test)()
       expect(res.body.data.myProfile).to.be.not.null
       expect(res.body.data.myProfile).to.be.deep.equal({
         id: '1',
@@ -212,9 +200,8 @@ describe('test graphql ----------', () => {
     })
 
     it('myProfile > query로 token', async () => {
-      const test = server.post('/graphql')
-      const res: request.Response = await promisify(
-        test.query({token})
+      const res: request.Response = await server.post('/graphql')
+        .query({token})
         .send({
           query: `
           {
@@ -228,8 +215,6 @@ describe('test graphql ----------', () => {
         })
         .expect('Content-Type', /json/)
         .expect(200)
-        .end
-      , test)()
       expect(res.body.data.myProfile).to.be.not.null
       expect(res.body.data.myProfile).to.be.deep.equal({
         id: '1',
@@ -239,9 +224,8 @@ describe('test graphql ----------', () => {
     })
 
     it('myProfile > 잘못된 token', async () => {
-      const test = server.post('/graphql')
-      const res: request.Response = await promisify(
-        test.query({token: 'this is wrong token.'})
+      const res: request.Response = await server.post('/graphql')
+        .query({token: 'this is wrong token.'})
         .send({
           query: `
           {
@@ -255,11 +239,7 @@ describe('test graphql ----------', () => {
         })
         .expect('Content-Type', /json/)
         .expect(401)
-        .end
-      , test)()
-      expect(res.body.errors[0].message).to.be.equal(
-        'jwt malformed'
-      )
+      expect(res.body.errors[0].message).to.be.equal('jwt malformed')
     })
   })
 })

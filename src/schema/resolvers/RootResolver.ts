@@ -79,6 +79,17 @@ export default class RootResolver {
     return token
   }
 
+  async createPost(
+    {input}: {
+      input: {
+        content: string,
+        files: string,
+      }
+    }
+  ) {
+    throw new Error('must be authenticate!!')
+  }
+
 
   //
   // protected

@@ -2,6 +2,7 @@
  * RootAuthResolver
  * 인증이 필요한 resolver
  */
+
 import {database} from '../../utils'
 import {Request} from 'express'
 import RootResolver from './RootResolver'
@@ -27,4 +28,15 @@ export default class RootAuthResolver extends RootResolver {
     }
     return users[0]
   } 
+  
+  // async createPost(
+  //   {input}: {
+  //     input: {
+  //       content: string,
+  //       files: string,
+  //     }
+  //   }
+  // ) {
+
+  // }
 }

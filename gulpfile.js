@@ -147,6 +147,39 @@ gulp.task('test.static', ['build'], () => {
 })
 
 /**
+ * test.note
+ */
+gulp.task('test.note', ['build'], () => {
+  return gulp.src('build/test/test.note.js', {read: false})
+  .pipe(mocha({
+    // report 종류
+    R: 'spec',
+  }))
+})
+
+/**
+ * test.utils
+ */
+gulp.task('test.utils', ['build'], () => {
+  return gulp.src('build/test/test.utils.js', {read: false})
+  .pipe(mocha({
+    // report 종류
+    R: 'spec',
+  }))
+})
+
+/**
+ * test.NoteRenderer
+ */
+gulp.task('test.NoteRenderer', ['build'], () => {
+  return gulp.src('build/test/test.NoteRenderer.js', {read: false})
+  .pipe(mocha({
+    // report 종류
+    R: 'spec',
+  }))
+})
+
+/**
  * test.watch
  */
 gulp.task('test.watch', ['test'], () => {
@@ -165,6 +198,27 @@ gulp.task('test.graphql.watch', ['test.graphql'], () => {
  */
 gulp.task('test.static.watch', ['test.static'], () => {
   gulp.watch('src/**/**', ['test.static'])
+})
+
+/**
+ * test.note.watch
+ */
+gulp.task('test.note.watch', ['test.note'], () => {
+  gulp.watch('src/**/**', ['test.note'])
+})
+
+/**
+ * test.utils.watch
+ */
+gulp.task('test.utils.watch', ['test.utils'], () => {
+  gulp.watch('src/**/**', ['test.utils'])
+})
+
+/**
+ * test.NoteRenderer.watch
+ */
+gulp.task('test.NoteRenderer.watch', ['test.NoteRenderer'], () => {
+  gulp.watch('src/**/**', ['test.NoteRenderer'])
 })
 
 /**

@@ -13,4 +13,7 @@ type Mutation {
     # 만료 기간 (ex: '1d', '5h', '10s')
     expiresIn: String
   ): String
+
+  # 빈 노트 생성
+  createNote: String
 }

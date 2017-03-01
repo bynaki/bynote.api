@@ -3,8 +3,12 @@
  */
 
 import * as Knex from 'knex'
-import {resolve} from 'path'
-import {createHmac} from 'crypto'
+import {join} from 'path'
+import {createHmac, createHash} from 'crypto'
+import {parse as parseUrl} from 'url'
+import {createWriteStream} from 'fs'
+import * as _ from 'lodash'
+import {ServerResponse} from 'http'
 import {secret} from './config'
 
 
@@ -18,11 +22,12 @@ export async function database(): Promise<Knex> {
   const knex = Knex({
     client: 'sqlite3',
     connection: {
-      filename: resolve(__dirname, 'mydb.sqlite'),
+      filename: join(__dirname, 'mydb.sqlite'),
     }
   })
+
   await knex.schema.dropTableIfExists('user')
-  await knex.schema.createTable('user', (table) => {
+  await knex.schema.createTable('user', table => {
     table.increments('id')
     table.string('username')
     table.string('password')
@@ -30,6 +35,17 @@ export async function database(): Promise<Knex> {
     table.timestamp('created_at')
     table.timestamp('updated_at')
   })
+
+  await knex.schema.dropTableIfExists('note-head')
+  await knex.schema.createTable('note-head', table => {
+    table.uuid('uuid')
+    table.integer('level')
+    table.string('hash')
+    table.string('headline')
+    table.string('fullHeadline')
+    table.string('content')
+  })
+
   _knex = knex
   return knex
 }
@@ -69,6 +85,15 @@ export function encrypt(src: string): string {
 }
 
 /**
+ * sha1 hash
+ */
+export function hash(src: string): string {
+  return createHash('sha1')
+          .update(src)
+          .digest('hex')
+}
+
+/**
  * status code 와 함께 Error 객체
  */
 export class ErrorWithStatusCode extends Error {
@@ -82,4 +107,41 @@ export class ErrorWithStatusCode extends Error {
   get statusCode() {
     return this._sc
   }
+}
+
+/**
+ * file download
+ */
+export function download(href: string, filename: string): Promise<{
+  headers: any
+  statusCode: number
+  statusMessage: string
+}> {
+  let get = null
+  const protocol = parseUrl(href).protocol
+  if(protocol === 'http:') {
+    get = require('http').get
+  } else if(protocol === 'https:') {
+    get = require('https').get
+  } else {
+    throw new Error('have to http: or https:')
+  }
+  return new Promise((resolve, reject) => {
+    const request = get(href, res => {
+      if(res.statusCode !== 200) {
+        reject(new Error(res.statusMessage))
+        return
+      }
+      res.on('end', () => {
+        resolve({
+          headers: _.clone(res.headers),
+          statusCode: res.statusCode,
+          statusMessage: res.statusMessage,
+        })
+      })
+      res.on('error', reject)
+      res.pipe(createWriteStream(filename).on('error', reject))
+    })
+    request.on('error', reject)
+  })
 }

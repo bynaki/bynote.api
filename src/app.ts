@@ -8,12 +8,21 @@ import * as bodyParser from 'body-parser'
 import {GraphQLError, GraphQLFormattedError} from 'graphql'
 import * as graphqlHTTP from 'express-graphql'
 import * as morgan from 'morgan'
-import {resolve} from 'path'
-import {secret} from './config'
+import {secret, path, url} from './config'
 import {schema, RootResolver, RootAuthResolver} from './schema'
 import authorize from './middlewares/authorize'
 import {GraphqlErrorMessages, ErrorWithStatusCode} from './utils'
 import {IDecodedToken} from './interface'
+
+const {
+  staticDir,
+  tmpDir,
+} = path
+
+const {
+  staticPathname,
+  tmpPathname,
+} = url
 
 
 export class Server {
@@ -50,7 +59,7 @@ export class Server {
     })
 
     // static 접근
-    this.app.use('/static', express.static(resolve(__dirname, '../static')))
+    this.app.use('/static', express.static(staticDir))
 
     // graphql middleware
     this.app.use('/graphql', graphqlHTTP((req: Request) => {

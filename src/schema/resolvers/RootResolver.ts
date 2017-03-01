@@ -12,6 +12,7 @@ import {
   IUser,
   IAuthorizer,
   IUserInput,
+  INoteOutput,
 } from '../../interface'
 import {registeredClaim} from '../../config'
 
@@ -79,14 +80,7 @@ export default class RootResolver {
     return token
   }
 
-  async createPost(
-    {input}: {
-      input: {
-        content: string,
-        files: string,
-      }
-    }
-  ) {
+  async createNote(): Promise<INoteOutput> {
     throw new Error('must be authenticate!!')
   }
 

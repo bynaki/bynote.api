@@ -6,3 +6,4 @@
 - test.static.ts
 - created\_at && updated\_at
 - /test > async\_await 부분 수정
+- RootAuthResolver.ts > createNote(), saveNote(), getNote()

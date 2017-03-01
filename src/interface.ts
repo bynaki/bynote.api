@@ -23,12 +23,6 @@ export interface IUserInput extends IAuthInput {
   email: string
 }
 
-export interface INote {
-  uuid: string
-  content: string
-}
-
-
 export interface IDecodedToken {
   id: string
   username: string
@@ -56,17 +50,22 @@ export interface INoteInput {
   origin?: string
 }
 
+export interface IImageHash {
+  key: string
+  value: string
+}
+
 export interface INoteSaving {
   content: string
   tags: string[]
   origin: string
-  images: {}
-  created_at: number
-  updated_at: number
+  images: IImageHash[] 
+  created_at: string
+  updated_at: string
 }
 
 export interface INoteOutput extends INoteSaving {
   uuid: string
-  heads: IHeadline[]
   url: string
+  heads: IHeadline[]
 }

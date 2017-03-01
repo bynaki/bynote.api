@@ -1,5 +1,5 @@
 /**
- * test graphql
+ * test user
  */
 
 import {expect} from 'chai'
@@ -10,7 +10,7 @@ import {secret} from '../config'
 import server from './testserver'
 
 
-describe('test graphql ----------', () => {
+describe('test user ----------', () => {
   it('createUser', async () => {
     const res: request.Response = await server.post('/graphql')
       .send({

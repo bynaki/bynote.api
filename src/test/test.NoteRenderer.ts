@@ -11,7 +11,7 @@ import {
 import {join} from 'path'
 
 
-describe('test NoteRenderer', () => {
+describe('test NoteRenderer ----------', () => {
   const renderer = new NoteRenderer('aabbcc')
   before(async () => {
     const src = (await readFile(join(__dirname, 'doc.md'))).toString()

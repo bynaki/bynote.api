@@ -7,3 +7,4 @@
 - created\_at && updated\_at
 - /test > async\_await 부분 수정
 - RootAuthResolver.ts > createNote(), saveNote(), getNote()
+- add schema note type && IImageHash

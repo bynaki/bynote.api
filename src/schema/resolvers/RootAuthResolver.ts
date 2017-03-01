@@ -28,9 +28,9 @@ import {
   IUser,
   IAuthorizer,
   IUserInput,
-  INote,
   IDecodedToken,
   INoteInput,
+  IImageHash,
   INoteSaving,
   INoteOutput,
 } from '../../interface'
@@ -73,12 +73,12 @@ export default class RootAuthResolver extends RootResolver {
     await ensureDir(config.path.tmpDir)
     await writeJson(noteDataTmpPath(this.username, id), {
       content: '',
-      images: {},
+      images: [],
       tags: [],
       origin: '',
-      created_at: Date.now(),
-      updated_at: Date.now(),
-    })
+      created_at: Date.now().toString(),
+      updated_at: Date.now().toString(),
+    } as INoteSaving)
 
     return this.getNote(id)
   }
@@ -107,7 +107,7 @@ export default class RootAuthResolver extends RootResolver {
     if(input.origin) {
       data.origin = input.origin
     }
-    data.updated_at = Date.now()
+    data.updated_at = Date.now().toString()
 
     await writeJson(noteDataPath(this.username, input.uuid), data)
     return this.getNote(input.uuid)
@@ -116,13 +116,14 @@ export default class RootAuthResolver extends RootResolver {
   async getNote(uuid: string): Promise<INoteOutput> {
     const {data: savingData, tmp} = await this._noteData(uuid)
     const note: INoteOutput = _.assign({}, savingData, {uuid}) as INoteOutput
-    const images = {}
-    for(let key in note.images) {
-      images[key] = (tmp)? 
-        noteTmpFileUrl(this.username, uuid, note.images[key]) : 
-        noteFileUrl(this.username, uuid, note.images[key])
-    }
-    note.images = images
+    note.images = note.images.map(image => {
+      return {
+        key: image.key,
+        value: (tmp)?
+          noteTmpFileUrl(this.username, uuid, image.value) : 
+          noteFileUrl(this.username, uuid, image.value)
+      }
+    })
     const knex = await database()
     _.assign(note, {heads: await knex('note-head').select().where({uuid})})
     note.url = (tmp)? noteUrl(this.username, uuid) : noteTmpUrl(this.username, uuid)
@@ -146,7 +147,7 @@ export default class RootAuthResolver extends RootResolver {
     }
   }
 
-  private async _processImage(uuid: string, images: Map<string, string>): Promise<any> {
+  private async _processImage(uuid: string, images: Map<string, string>): Promise<IImageHash[]> {
     const noteDirname = noteDir(this.username, uuid)
     let files = await readdir(noteDirname)
     files = files.filter(async file => {
@@ -155,7 +156,7 @@ export default class RootAuthResolver extends RootResolver {
       return basename(file)
     })
     
-    const validImages = {}
+    const validImages: IImageHash[] = []
     images.forEach(async (value, key) => {
       if(!files.find(RootAuthResolver._exists(value))) {
         const protocal = parseUrl(key).protocol
@@ -187,13 +188,13 @@ export default class RootAuthResolver extends RootResolver {
         }
         if(/png/.test(contentType)) {
           await rename(imgPath, imgPath + '.png')
-          validImages[key] = value + '.png'
+          validImages.push({key, value: value + '.png'})
         } else if(/jpeg/.test(contentType)) {
           await rename(imgPath, imgPath + '.jpg')
-          validImages[key] = value + '.jpg'
+          validImages.push({key, value: value + '.jpg'})
         } else if(/gif/.test(contentType)) {
           await rename(imgPath, imgPath + '.gif')
-          validImages[key] = value + '.gif'
+          validImages.push({key, value: value + '.gif'})
         } else {
           await remove(imgPath)
           console.warn(`

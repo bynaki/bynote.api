@@ -125,10 +125,10 @@ gulp.task('test', ['build'], () => {
 })
 
 /**
- * test.graphql
+ * test.user
  */
-gulp.task('test.graphql', ['build'], () => {
-  return gulp.src('build/test/test.graphql.js', {read: false})
+gulp.task('test.user', ['build'], () => {
+  return gulp.src('build/test/test.user.js', {read: false})
   .pipe(mocha({
     // report 종류
     R: 'spec',
@@ -187,10 +187,10 @@ gulp.task('test.watch', ['test'], () => {
 })
 
 /**
- * test.graphql.watch
+ * test.user.watch
  */
-gulp.task('test.graphql.watch', ['test.graphql'], () => {
-  gulp.watch('src/**/**', ['test.graphql'])
+gulp.task('test.user.watch', ['test.user'], () => {
+  gulp.watch('src/**/**', ['test.user'])
 })
 
 /**

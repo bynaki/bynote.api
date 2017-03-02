@@ -2,24 +2,28 @@ interface IUser {
   id: String
   username: String
   email: String
+  admin: Boolean
   created_at: String
   updated_at: String
 }
 
 # 유저 정보
-type User implements IUser {
+type UserOutput implements IUser {
   id: String
   username: String
   email: String
+  admin: Boolean
   created_at: String
   updated_at: String
 }
 
 # 인증된 유저 정보
-type Authorizer implements IUser {
+type UserSaving implements IUser {
   id: String
   username: String
   email: String
+  admin: Boolean
+  password: String
   created_at: String
   updated_at: String
 }

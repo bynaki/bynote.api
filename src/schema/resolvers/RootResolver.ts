@@ -5,12 +5,13 @@
 
 import {Request} from 'express'
 import * as _ from 'lodash'
-import {sign} from 'jsonwebtoken'
-import promisify from 'fourdollar.promisify'
+import {sign, SignOptions} from 'jsonwebtoken'
+import p from 'fourdollar.promisify'
+import {QueryBuilder} from 'knex'
 import {database, encrypt} from '../../utils'
 import {
-  IUser,
-  IAuthorizer,
+  IUserOutput,
+  IUserSaving,
   IUserInput,
   INoteOutput,
 } from '../../interface'
@@ -21,20 +22,20 @@ export default class RootResolver {
   constructor() {
   }
 
-  async user(query: {id?: string, username?: string}): Promise<IUser> {
+  async user(query: {id?: string, username?: string}): Promise<IUserOutput> {
     const users = await this._findUsers(query)
     if(users.length != 0) {
       return users[0]
     } else {
-      return null
+      throw new Error('missing user!')
     }
   }
 
-  async users(): Promise<IUser[]> {
+  async users(): Promise<IUserOutput[]> {
     return await this._findUsers({})
   }
 
-  async myProfile(): Promise<IAuthorizer> {
+  async myProfile(): Promise<IUserSaving> {
     throw new Error('must be authenticate!!')
   }
 
@@ -42,18 +43,18 @@ export default class RootResolver {
   //
   // Mutation
 
-  async createUser({input}: {input: IUserInput}): Promise<IUser> {
+  async createUser({input}: {input: IUserInput}): Promise<IUserOutput> {
     const knex = await database()
     if((await this._findUsers({username: input.username})).length != 0) {
       throw new Error('username exists')
     }
-    const userInput: IAuthorizer = _.clone<IUserInput>(input) as IAuthorizer
+    const userInput: IUserSaving = _.clone<IUserInput>(input) as IUserSaving
     userInput.password = encrypt(userInput.password)
     const now = Date.now().toString()
     userInput.created_at = now
     userInput.updated_at = now
     const ids: any[] = await knex('user').insert(userInput)
-    return await this.user({id: ids[0]})
+    return this.user({id: ids[0]})
   }
 
   async createToken(
@@ -69,7 +70,10 @@ export default class RootResolver {
     if(expiresIn) {
       options.expiresIn = expiresIn
     }
-    const token = await promisify(sign)({
+    return p<(
+      payload: string | Buffer | Object
+      , secretOrPrivateKey: string | Buffer
+      , options?: SignOptions) => Promise<string>>(sign)({
         id: auth.id,
         username: auth.username,
         email: auth.email,
@@ -77,7 +81,6 @@ export default class RootResolver {
       secret,
       options
     )
-    return token
   }
 
   async createNote(): Promise<INoteOutput> {
@@ -88,16 +91,16 @@ export default class RootResolver {
   //
   // protected
 
-  protected async _findUsers(query?: any): Promise<IUser[]> {
+  protected async _findUsers(query?: any): Promise<IUserOutput[]> {
     const knex = await database()
-    const users: IUser[] = await knex('user')
-      .select('id', 'username', 'email', 'created_at', 'updated_at').where(query)
-    return users
+    return knex('user')
+      .select('id', 'username', 'email', 'admin', 'created_at', 'updated_at')
+      .where(query)
   }
 
-  protected async _getAuthorizer(username: string): Promise<IAuthorizer> {
+  protected async _getAuthorizer(username: string): Promise<IUserSaving> {
     const knex = await database()
-    const rows: IAuthorizer[] = await knex('user')
+    const rows: IUserSaving[] = await knex('user')
       .select().where({username})
     if(rows.length !== 1) {
       throw new Error('must be 1')

@@ -2,7 +2,7 @@ type Mutation {
   # 새로운 유저 생성
   createUser(
     input: UserInput!
-  ): User
+  ): UserOutput
 
   # 인증을 위한 토큰 생성
   createToken(

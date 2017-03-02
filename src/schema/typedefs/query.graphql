@@ -11,11 +11,11 @@ type Query {
     id: ID
     # 유저 이름
     username: String
-  ): User
+  ): UserOutput
 
   # 유저들의 정보
-  users: [User]
+  users: [UserOutput]
 
   # 인증자의 정보
-  myProfile: Authorizer
+  myProfile: UserSaving
 }

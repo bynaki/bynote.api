@@ -89,6 +89,28 @@ describe('test user ----------', () => {
       email: 'bynaki@email.com',
     })
   })
+
+  it('user > 없는 유저로 검색하면 에러가 난다.', async () => {
+    const res: request.Response = await server.post('/graphql')
+      .send({
+        query: `
+        {
+          user(username: "wrong") {
+            username
+            email
+          }
+        }
+        `
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+    expect(res.body).to.be.a('object')
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.have.property('user') 
+    expect(res.body.data.user).to.be.a('null')
+    expect(res.body).to.have.property('errors')
+    expect(res.body.errors[0].message).to.eq('missing user!')
+  })
   
   it('users', async () => {
     server.post('/graphql')

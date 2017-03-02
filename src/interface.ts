@@ -6,20 +6,29 @@ export interface IUser {
   id: string
   username: string
   email: string
+  admin: boolean
   created_at: string
   updated_at: string
 }
 
-export interface IAuthorizer extends IUser {
+export interface IUserOutput {}
+
+export interface IUserSaving extends IUser {
   password: string
 }
 
-export interface IAuthInput {
+// export interface IAuthInput {
+//   username: string
+//   password: string
+// }
+
+// export interface IUserInput extends IAuthInput {
+//   email: string
+// }
+
+export interface IUserInput {
   username: string
   password: string
-}
-
-export interface IUserInput extends IAuthInput {
   email: string
 }
 

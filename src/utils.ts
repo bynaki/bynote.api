@@ -32,6 +32,7 @@ export async function database(): Promise<Knex> {
     table.string('username')
     table.string('password')
     table.string('email')
+    table.boolean('admin')
     table.timestamp('created_at')
     table.timestamp('updated_at')
   })

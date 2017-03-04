@@ -9,3 +9,4 @@
 - RootAuthResolver.ts > createNote(), saveNote(), getNote()
 - add schema note type && IImageHash
 - UserOutput UserInput UserSaving
+- user table에 admin 추가

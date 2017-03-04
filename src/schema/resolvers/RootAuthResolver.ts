@@ -26,7 +26,7 @@ import {
 import RootResolver from './RootResolver'
 import {
   IUser,
-  IAuthorizer,
+  IUserOutput,
   IUserInput,
   IDecodedToken,
   INoteInput,
@@ -57,15 +57,40 @@ export default class RootAuthResolver extends RootResolver {
     super()
   }
 
-  async myProfile(): Promise<IAuthorizer> {
+
+  //
+  // Query
+
+  async myProfile(): Promise<IUserOutput> {
     const knex = await database()
-    const users: IAuthorizer[] = await knex('user')
+    const users: IUserOutput[] = await knex('user')
       .select().where({id: this._decodedToken.id})
     if(users.length === 0) {
       throw new Error('It is an unqualified authentication.')
     }
     return users[0]
   } 
+
+  async getNote(uuid: string): Promise<INoteOutput> {
+    const {data: savingData, tmp} = await this._noteData(uuid)
+    const note: INoteOutput = _.assign({}, savingData, {uuid}) as INoteOutput
+    note.images = note.images.map(image => {
+      return {
+        key: image.key,
+        value: (tmp)?
+          noteTmpFileUrl(this.username, uuid, image.value) : 
+          noteFileUrl(this.username, uuid, image.value)
+      }
+    })
+    const knex = await database()
+    _.assign(note, {heads: await knex('note-head').select().where({uuid})})
+    note.url = (tmp)? noteUrl(this.username, uuid) : noteTmpUrl(this.username, uuid)
+    return note
+  }
+
+
+  //
+  // Mutation
 
   async createNote(): Promise<INoteOutput> {
     const id = uuid.v1()
@@ -113,24 +138,11 @@ export default class RootAuthResolver extends RootResolver {
     return this.getNote(input.uuid)
   }
 
-  async getNote(uuid: string): Promise<INoteOutput> {
-    const {data: savingData, tmp} = await this._noteData(uuid)
-    const note: INoteOutput = _.assign({}, savingData, {uuid}) as INoteOutput
-    note.images = note.images.map(image => {
-      return {
-        key: image.key,
-        value: (tmp)?
-          noteTmpFileUrl(this.username, uuid, image.value) : 
-          noteFileUrl(this.username, uuid, image.value)
-      }
-    })
-    const knex = await database()
-    _.assign(note, {heads: await knex('note-head').select().where({uuid})})
-    note.url = (tmp)? noteUrl(this.username, uuid) : noteTmpUrl(this.username, uuid)
-    return note
-  }
 
-  get username(): string {
+  //
+  // Utils
+
+  private get username(): string {
     return this._decodedToken.username
   }
 

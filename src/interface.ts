@@ -11,20 +11,11 @@ export interface IUser {
   updated_at: string
 }
 
-export interface IUserOutput {}
+export interface IUserOutput extends IUser {}
 
 export interface IUserSaving extends IUser {
   password: string
 }
-
-// export interface IAuthInput {
-//   username: string
-//   password: string
-// }
-
-// export interface IUserInput extends IAuthInput {
-//   email: string
-// }
 
 export interface IUserInput {
   username: string

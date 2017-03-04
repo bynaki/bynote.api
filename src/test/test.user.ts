@@ -8,6 +8,10 @@ import {verify} from 'jsonwebtoken'
 import promisify from 'fourdollar.promisify'
 import {secret} from '../config'
 import server from './testserver'
+import {
+  IUserOutput,
+  IUserSaving,
+} from '../interface'
 
 
 describe('test user ----------', () => {
@@ -24,6 +28,7 @@ describe('test user ----------', () => {
             id
             username
             email
+            admin
           }
           hello: createUser(input: {
             username: "hello"
@@ -33,6 +38,7 @@ describe('test user ----------', () => {
             id
             username
             email
+            admin
           }
           rozio: createUser(input: {
             username: "rozio"
@@ -57,10 +63,13 @@ describe('test user ----------', () => {
       id: res.body.data.bynaki.id,
       username: 'bynaki',
       email: 'bynaki@email.com',
+      admin: true
     })
-    expect(res.body.data.hello.username).to.be.equal('hello')
-    const rozio = res.body.data.rozio
-    expect(rozio.email).to.be.equal('rozio@email.com')
+    const hello: IUserOutput = res.body.data.hello
+    expect(hello.username).to.equal('hello')
+    expect(hello.admin).to.eq(false)
+    const rozio: IUserOutput = res.body.data.rozio
+    expect(rozio.email).to.equal('rozio@email.com')
     expect(new Date(parseInt(rozio.created_at)).toString())
       .to.be.not.equal('Invalid Date')
     expect(new Date(parseInt(rozio.updated_at)).toString())
@@ -153,8 +162,9 @@ describe('test user ----------', () => {
     const token = res.body.data.token
     expect(token).to.be.not.null
     const decoded = await promisify(verify)(token, secret)
-    expect(decoded.username).to.be.equal('bynaki')
-    expect(decoded.email).to.be.equal('bynaki@email.com')
+    expect(decoded.username).to.equal('bynaki')
+    expect(decoded.email).to.equal('bynaki@email.com')
+    expect(decoded.admin).to.equal(1) // true가 아니라 1을 반환한다.
     expect(decoded.exp - decoded.iat).to.be.equal(1)
   })
 

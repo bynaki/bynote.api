@@ -13,6 +13,7 @@ import {
   IUserOutput,
   IUserSaving,
   IUserInput,
+  INoteInput,
   INoteOutput,
 } from '../../interface'
 import {registeredClaim} from '../../config'
@@ -23,7 +24,7 @@ export default class RootResolver {
   }
 
   async user(query: {id?: string, username?: string}): Promise<IUserOutput> {
-    const users = await this._findUsers(query)
+    const users = await RootResolver._findUsers(query)
     if(users.length != 0) {
       return users[0]
     } else {
@@ -32,10 +33,14 @@ export default class RootResolver {
   }
 
   async users(): Promise<IUserOutput[]> {
-    return await this._findUsers({})
+    return await RootResolver._findUsers({})
   }
 
   async myProfile(): Promise<IUserSaving> {
+    throw new Error('must be authenticate!!')
+  }
+
+  async getNote(uuid: string): Promise<INoteOutput> {
     throw new Error('must be authenticate!!')
   }
 
@@ -44,16 +49,16 @@ export default class RootResolver {
   // Mutation
 
   async createUser({input}: {input: IUserInput}): Promise<IUserOutput> {
+    const userSaving = RootResolver._initUserSaving
     const knex = await database()
-    if((await this._findUsers({username: input.username})).length != 0) {
+    if((await knex('user').select().limit(1)).length === 0) {
+      userSaving.admin = true
+    } else if((await RootResolver._findUsers({username: input.username})).length != 0) {
       throw new Error('username exists')
     }
-    const userInput: IUserSaving = _.clone<IUserInput>(input) as IUserSaving
-    userInput.password = encrypt(userInput.password)
-    const now = Date.now().toString()
-    userInput.created_at = now
-    userInput.updated_at = now
-    const ids: any[] = await knex('user').insert(userInput)
+    _.assign(userSaving, input)
+    userSaving.password = encrypt(input.password)
+    const ids: any[] = await knex('user').insert(userSaving)
     return this.user({id: ids[0]})
   }
 
@@ -61,7 +66,7 @@ export default class RootResolver {
     {username, password, expiresIn}: 
     {username: string, password: string, expiresIn?: string}
     , req: Request): Promise<string> {
-    const auth = await this._getAuthorizer(username)
+    const auth = await RootResolver._getUserSaving(username)
     if(auth.password !== encrypt(password)) {
       throw new Error('authentication failed')
     }
@@ -77,6 +82,7 @@ export default class RootResolver {
         id: auth.id,
         username: auth.username,
         email: auth.email,
+        admin: auth.admin,
       },
       secret,
       options
@@ -87,18 +93,22 @@ export default class RootResolver {
     throw new Error('must be authenticate!!')
   }
 
+  async saveNote({input}: {input: INoteInput}): Promise<INoteOutput> {
+    throw new Error('must be authenticate!!')
+  }
+
 
   //
-  // protected
+  // utils
 
-  protected async _findUsers(query?: any): Promise<IUserOutput[]> {
+  protected static async _findUsers(query?: any): Promise<IUserOutput[]> {
     const knex = await database()
     return knex('user')
       .select('id', 'username', 'email', 'admin', 'created_at', 'updated_at')
       .where(query)
   }
 
-  protected async _getAuthorizer(username: string): Promise<IUserSaving> {
+  protected static async _getUserSaving(username: string): Promise<IUserSaving> {
     const knex = await database()
     const rows: IUserSaving[] = await knex('user')
       .select().where({username})
@@ -106,5 +116,16 @@ export default class RootResolver {
       throw new Error('must be 1')
     }
     return rows[0]
+  }
+
+  private static get _initUserSaving(): IUserSaving {
+    return {
+      username: '',
+      password: '',
+      email: '',
+      admin: false,
+      created_at: Date.now().toString(),
+      updated_at: Date.now().toString(),
+    } as IUserSaving
   }
 }

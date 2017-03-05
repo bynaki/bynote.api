@@ -20,8 +20,13 @@ export function readFile(filename: string, options?: fs.OpenOptions): Promise<Bu
   return p(fs.readFile)(filename, options)
 }
 
+export function writeFile(filename: string, data: any
+  , options?: { encoding?: string; mode?: number | string; flag?: string; }): Promise<void> {
+  return p(fs.writeFile)(filename, data, options)
+}
+
 export function exists(path: string | Buffer): Promise<boolean> {
-  return p(exists, false)(path)
+  return p(fs.exists, false)(path)
 }
 
 export function readJson(file: string, options?: fs.OpenOptions): Promise<any> {

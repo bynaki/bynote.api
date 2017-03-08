@@ -35,8 +35,10 @@
     "@types/mocha": "^2.2.37",
     "@types/morgan": "^1.7.32",
     "@types/node": "^7.0.0",
+    "@types/superagent": "^2.0.36",
     "@types/supertest": "^2.0.0",
     "@types/uuid": "^2.0.29",
+    "@types/xml2js": "0.0.32",
     "chai": "^3.5.0",
     "fs-extra": "^1.0.0",
     "gulp": "^3.9.1",
@@ -59,12 +61,16 @@
     "fs-extra": "^1.0.0",
     "glob": "^7.1.1",
     "graphql": "^0.8.2",
+    "isomorphic-fetch": "^2.2.1",
     "jsonwebtoken": "^7.2.1",
     "knex": "^0.12.6",
     "lodash": "^4.17.4",
     "marked": "^0.3.6",
     "morgan": "^1.8.1",
     "sqlite3": "^3.1.8",
-    "uuid": "^3.0.1"
+    "superagent": "^3.5.0",
+    "tar.gz": "^1.0.5",
+    "uuid": "^3.0.1",
+    "xml2js": "^0.4.17"
   }
 }

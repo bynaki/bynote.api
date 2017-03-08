@@ -191,6 +191,17 @@ gulp.task('test.NoteDocset', ['build'], () => {
 })
 
 /**
+ * test.Docset
+ */
+gulp.task('test.Docset', ['build'], () => {
+  return gulp.src('build/test/test.Docset.js', {read: false})
+  .pipe(mocha({
+    // report 종류
+    R: 'spec',
+  }))
+})
+
+/**
  * test.watch
  */
 gulp.task('test.watch', ['test'], () => {
@@ -237,6 +248,13 @@ gulp.task('test.NoteRenderer.watch', ['test.NoteRenderer'], () => {
  */
 gulp.task('test.NoteDocset.watch', ['test.NoteDocset'], () => {
   gulp.watch('src/**/**', ['test.NoteDocset'])
+})
+
+/**
+ * test.Docset.watch
+ */
+gulp.task('test.Docset.watch', ['test.Docset'], () => {
+  gulp.watch('src/**/**', ['test.Docset'])
 })
 
 /**

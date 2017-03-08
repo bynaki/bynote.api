@@ -8,9 +8,11 @@ import {createHmac, createHash} from 'crypto'
 import {parse as parseUrl} from 'url'
 import {createWriteStream} from 'fs'
 import * as _ from 'lodash'
-import {ServerResponse} from 'http'
+import 'isomorphic-fetch'
+import {RequestOptions} from 'http'
+import {Extract} from 'tar'
+import * as targz from 'tar.gz'
 import {secret} from './config'
-
 
 /**
  * 데이터 베이스 가져오기 (Knex)
@@ -113,22 +115,27 @@ export class ErrorWithStatusCode extends Error {
 /**
  * file download
  */
-export function download(href: string, filename: string): Promise<{
+export function download(
+  href: string | RequestOptions
+  , path: string
+  , options?: {
+    unzip: boolean
+  }): Promise<{
   headers: any
   statusCode: number
   statusMessage: string
 }> {
-  let get = null
-  const protocol = parseUrl(href).protocol
-  if(protocol === 'http:') {
-    get = require('http').get
-  } else if(protocol === 'https:') {
-    get = require('https').get
+  let request = null
+  const urlObj = (typeof href === 'string')? parseUrl(href) : href
+  if(urlObj.protocol === 'http:') {
+    request = require('http').get
+  } else if(urlObj.protocol === 'https:') {
+    request = require('https').get
   } else {
     throw new Error('have to http: or https:')
   }
   return new Promise((resolve, reject) => {
-    const request = get(href, res => {
+    const req = request(urlObj, res => {
       if(res.statusCode !== 200) {
         reject(new Error(res.statusMessage))
         return
@@ -141,8 +148,14 @@ export function download(href: string, filename: string): Promise<{
         })
       })
       res.on('error', reject)
-      res.pipe(createWriteStream(filename).on('error', reject))
+      if(/x-tar/.test(res.headers['content-type'])) {
+        // const extractor = Extract({path}).on('error', reject)
+        // res.pipe(extractor)
+        res.pipe(targz().createWriteStream(path).on('error', reject))
+      } else {
+        res.pipe(createWriteStream(path).on('error', reject))
+      }
     })
-    request.on('error', reject)
+    req.on('error', reject)
   })
 }

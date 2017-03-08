@@ -9,9 +9,13 @@ import {
   download
 } from '../utils'
 
-describe('test utils ----------', () => {
+describe('test utils ----------', function() {
+  this.timeout(10000)
+
   before(async () => {
     await remove(filename01)
+    await remove(filename02)
+    await remove(filename03)
   })
 
   const href01 = 'https://avatars0.githubusercontent.com/u/6610074?v=3&s=460'
@@ -33,5 +37,16 @@ describe('test utils ----------', () => {
     } catch(err) {
       expect((err as Error).message).to.equal('Not Found')
     }
+  })
+
+  const href03 = 'http://sanfrancisco.kapeli.com/feeds/Mocha.tgz'
+  const filename03 = join(__dirname, 'tmp/mocha.docset')
+  it('download(): 압축된 파일을 자동으로 압축을 풀고 저장한다.', async () => {
+    const info = await download(href03, filename03)
+    console.log(JSON.stringify(info.headers, null, ' '))
+    expect(info.statusCode).to.eq(200)
+    expect(info.headers).to.have.property('content-encoding')
+    expect(info.headers['content-encoding']).to.eq('gzip')
+    expect(await exists(filename03)).to.be.true
   })
 })

@@ -41,7 +41,14 @@ export default class NoteRenderer extends Renderer {
       content: '',
     })
     this._newHeading = true
-    return ''
+    return `
+<h${level}>
+  <a name="${hash}" class="anchor" href="#${hash}">
+    <span class="header-link">#</span>
+  </a>
+  ${headline}
+</h>
+`
   }
 
   paragraph(content: string): string {
@@ -49,17 +56,14 @@ export default class NoteRenderer extends Renderer {
       this._heads[this._heads.length - 1].content = content.slice(0, 80)
       this._newHeading = false
     }
-    return ''
+    return super.paragraph(content)
   }
 
   image(href: string, title: string, text: string): string {
     const parsed = parseUrl(href)
-    if(parsed.protocol) {
-      this._images.set(href, hash(href))
-    } else {
-      this._images.set(href, href)
-    }
-    return ''
+    const realHref = (parsed.protocol)? hash(href) : href
+    this._images.set(href, realHref)
+    return super.image(href, title, text)
   }
 
   get heads(): IHeadline[] {

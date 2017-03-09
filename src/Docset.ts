@@ -2,8 +2,8 @@
  * Docset
  */
 
-import {Parser as XMLParser} from 'xml2js'
 import 'isomorphic-fetch'
+import * as cheerio from 'cheerio'
 import p from 'fourdollar.promisify'
 import {v1 as newUuid} from 'uuid'
 import {join, extname} from 'path'
@@ -12,9 +12,14 @@ import * as targz from 'tar.gz'
 import {createWriteStream} from 'fs'
 import * as Knex from 'knex'
 import * as _ from 'lodash'
-import {readdir, stat} from './fs.promise'
+import {parse as parsePlist} from 'plist'
+import {
+  readdir,
+  stat,
+  ensureDir,
+  readFile,
+} from './fs.promise'
 import {docset as config} from './config'
-import {ensureDir} from './fs.promise'
 
 
 export interface FeedInfo {
@@ -36,8 +41,7 @@ export interface FeedInfo {
 
 export interface FindOption {
   fuzzy?: boolean
-  ignoreCase?: boolean
-  limit?: 50
+  limit?: number
 }
 
 export interface DocItem {
@@ -46,6 +50,14 @@ export interface DocItem {
   type: string
   path: string
 }
+
+export interface DocsetInfo {
+  CFBundleIdentifier: string
+  CFBundleName: string
+  DocSetPlatformFamily: string
+  isDashDocset: boolean
+}
+
 
 export default class Docset {
   // {
@@ -73,9 +85,12 @@ export default class Docset {
 
   static async docsetUrls(feedUrl: string): Promise<string[]> {
     const feedXml = await (await fetch(feedUrl)).text()
-    const parser = new XMLParser()
-    const feedJson = await p<(str: string) => Promise<any>>(parser.parseString)(feedXml)
-    return feedJson.entry.url
+    const $ = cheerio.load(feedXml)
+    const urls: string[] = [] 
+    $('url').each((idx, elem) => {
+      urls.push(elem.childNodes[0].nodeValue)
+    })
+    return urls
   }
   
   static async download(feed: FeedInfo) {
@@ -86,23 +101,36 @@ export default class Docset {
   }
 
   static async docsetList(): Promise<Docset[]> {
-    const docsetPaths = (await readdir(config.docsetDir)).filter(path => {
-      return extname(path) === '.docset'
-    })
-    docsetPaths.forEach(path => {
-      if(Docset._docsetList.findIndex(docset => docset.path === path) === -1) {
-        Docset._docsetList.push(new Docset(path))
-      }
-    })
+    const docsetPaths = (await readdir(config.docsetDir))
+      .filter(filename => extname(filename) === '.docset')
+      .map(filename => join(config.docsetDir, filename))
+    const oldDocsets = Docset._docsetList
+      .filter(docset => _.includes(docsetPaths, docset.path))
+    const promises = docsetPaths
+      .filter(path => !Docset._docsetList.find(docset => docset.path === path))
+      .map(async path => new Docset(path, await Docset.docsetInfo(path)))
+    const newDocsets = await Promise.all(promises)
+    Docset._docsetList = [...oldDocsets, ...newDocsets]
     return Docset._docsetList
   }
   private static _docsetList: Docset[] = []
 
+  static async get(name: string) {
+    return (await Docset._docsetList).find(docset => docset.name === name)
+  }
+
+  static async docsetInfo(path: string): Promise<DocsetInfo> {
+    const infoXml = await readFile(join(path, config.infoPath))
+    return parsePlist(infoXml.toString())
+  }
+
   private _path: string;
+  private _info: DocsetInfo;
   private _knex: Knex;
 
-  constructor(path: string) {
+  constructor(path: string, info: DocsetInfo) {
     this._path = path
+    this._info = info
     this._knex = Knex({
       client: 'sqlite3',
       connection: {
@@ -113,24 +141,25 @@ export default class Docset {
 
   async find(name: string, option: FindOption = {}): Promise<DocItem[]> {
     const vOption = _.assign<FindOption, FindOption>({
-      fuzzy: false, ignoreCase: true, limit: 50
-    }, option)
+      fuzzy: false, limit: 50}, option)
     if(vOption.fuzzy) {
       name = name.split('').join('%')
     }
-    if(vOption.ignoreCase) {
-      return this.knex('searchIndex')
-        .where(this.knex.raw(`lower("name") like '%${name.toLowerCase()}%'`))
-        .limit(vOption.limit)
-    } else {
-      return this.knex('searchIndex')
-        .where('name', 'like', `%${name}%`)
-        .limit(vOption.limit)
-    }
+    return this.knex('searchIndex')
+      .where(this.knex.raw(`lower("name") like '%${name.toLowerCase()}%'`))
+      .limit(vOption.limit)
   }
 
   get path(): string {
     return this._path
+  }
+
+  get info(): DocsetInfo {
+    return this._info
+  }
+
+  get name(): string {
+    return this.info.CFBundleName
   }
 
   get knex(): Knex {

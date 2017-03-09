@@ -55,6 +55,24 @@
     },
     {
       "type": "node",
+      "request": "launch",
+      "name": "Test.Docset",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "--colors",
+        "--timeout", "999999",
+        "${workspaceRoot}/build/test/test.Docset.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "runtimeExecutable": null,
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/build/**/*.js"
+      ],
+      "preLaunchTask": "build"
+    },
+    {
+      "type": "node",
       "request": "attach",
       "name": "Attach",
       "address": "localhost",

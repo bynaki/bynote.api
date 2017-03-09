@@ -5,6 +5,7 @@
 ### v0.1.1
 - NoteDocset > create
 - Docset
+- test.Docset
 
 ### v0.1.0
 - test.static.ts

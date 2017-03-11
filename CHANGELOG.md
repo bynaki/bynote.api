@@ -6,6 +6,7 @@
 - NoteDocset > create
 - Docset
 - test.Docset
+- test.Docset > 마무리
 
 ### v0.1.0
 - test.static.ts

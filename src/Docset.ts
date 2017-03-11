@@ -13,6 +13,7 @@ import {createWriteStream} from 'fs'
 import * as Knex from 'knex'
 import * as _ from 'lodash'
 import {parse as parsePlist} from 'plist'
+import {parse as parseUrl} from 'url'
 import {
   readdir,
   stat,
@@ -37,6 +38,13 @@ export interface FeedInfo {
     git: string
     html: string
   }
+}
+
+export interface DocsetFeed {
+  version: string
+  ios_version: string
+  urls: string[]
+  other_versions: string[]
 }
 
 export interface FindOption {
@@ -76,34 +84,73 @@ export default class Docset {
   //     "html": "https://github.com/Kapeli/feeds/blob/master/CoffeeScript.xml"
   //   }
   // }
-  static async feedList(): Promise<FeedInfo[]> {
+  static async feedInfoList(): Promise<FeedInfo[]> {
     const feeds: any[] = await (await fetch(config.feedUrl)).json()
     return feeds.filter(feed => {
       return (extname(feed.name) === '.xml')
     })
   }
 
-  static async docsetUrls(feedUrl: string): Promise<string[]> {
-    const feedXml = await (await fetch(feedUrl)).text()
-    const $ = cheerio.load(feedXml)
-    const urls: string[] = [] 
-    $('url').each((idx, elem) => {
-      urls.push(elem.childNodes[0].nodeValue)
-    })
-    return urls
-  }
-  
-  static async download(feed: FeedInfo) {
-    const urls = await Docset.docsetUrls(feed.download_url)
-    await ensureDir(config.docsetDir)
-    request.get(urls[0])
-    .pipe(targz().createWriteStream(config.docsetDir))
+  static async feedXml(path: string): Promise<string> {
+    if(parseUrl(path).protocol === 'http:' 
+      || parseUrl(path).protocol === 'https:') {   // remote
+      return (await fetch(path)).text()
+    } else {                                      // local
+      return (await readFile(path)).toString()
+    }
   }
 
-  static async docsetList(): Promise<Docset[]> {
-    const docsetPaths = (await readdir(config.docsetDir))
+  // <entry>
+  //   <version>1.63.0</version>
+  //   <ios_version>1</ios_version>
+  //   <url>http://sanfrancisco.kapeli.com/feeds/Boost.tgz</url>
+  //   <url>http://london.kapeli.com/feeds/Boost.tgz</url>
+  //   <url>http://newyork.kapeli.com/feeds/Boost.tgz</url>
+  //   <url>http://tokyo.kapeli.com/feeds/Boost.tgz</url>
+  //   <url>http://frankfurt.kapeli.com/feeds/Boost.tgz</url>
+  //   <url>http://sydney.kapeli.com/feeds/Boost.tgz</url>
+  //   <url>http://singapore.kapeli.com/feeds/Boost.tgz</url>
+  //   <other-versions>
+  //     <version><name>1.63.0</name></version>
+  //     <version><name>1.62.0</name></version>
+  //     <version><name>1.61.0</name></version>
+  //     <version><name>1.60.0</name></version>
+  //     <version><name>1.59.0</name></version>
+  //     <version><name>1.58.0</name></version>
+  //     <version><name>1.57.0</name></version>
+  //   </other-versions>
+  // </entry>
+  static async feedJson(path: string): Promise<DocsetFeed> {
+    const feedXml = await Docset.feedXml(path)
+    const $ = cheerio.load(feedXml)
+    return {
+      version: $('entry > version').html(),
+      ios_version: $('entry > ios_version').html(),
+      urls: Docset._elemMap($('entry > url'), (elem, idx) => elem.childNodes[0].nodeValue),
+      other_versions: Docset._elemMap($('other-versions > version > name')
+        , (elem, idx) => elem.childNodes[0].nodeValue),
+    }
+  }
+
+  private static _elemMap($: Cheerio, callbackfn: (value: CheerioElement, index: number) => string): string[] {
+    const map: string[] = []
+    $.each((idx, elem) => {
+      map.push(callbackfn(elem, idx))
+    })
+    return map
+  }
+  
+  static async download(feed: FeedInfo, docsetDir: string) {
+    const urls = (await Docset.feedJson(feed.download_url)).urls
+    await ensureDir(docsetDir)
+    request.get(urls[0])
+    .pipe(targz().createWriteStream(docsetDir))
+  }
+
+  static async docsetList(docsetDir: string): Promise<Docset[]> {
+    const docsetPaths = (await readdir(docsetDir))
       .filter(filename => extname(filename) === '.docset')
-      .map(filename => join(config.docsetDir, filename))
+      .map(filename => join(docsetDir, filename))
     const oldDocsets = Docset._docsetList
       .filter(docset => _.includes(docsetPaths, docset.path))
     const promises = docsetPaths

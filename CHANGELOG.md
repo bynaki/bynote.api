@@ -2,6 +2,9 @@
 
 ## v0.1
 
+### v0.2.0
+- RootResolver > getProfile(), setProfile(), createToken()
+
 ### v0.1.1
 - NoteDocset > create
 - Docset

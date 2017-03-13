@@ -12,7 +12,7 @@ import {secret, path, url} from './config'
 import {schema, RootResolver, RootAuthResolver} from './schema'
 import authorize from './middlewares/authorize'
 import {GraphqlErrorMessages, ErrorWithStatusCode} from './utils'
-import {IDecodedToken} from './interface'
+import {DecodedToken} from './interface'
 
 const {
   staticDir,
@@ -48,18 +48,18 @@ export class Server {
     this.app.use(authorize)
 
     // static 에 접근 할 수 있는지 
-    this.app.use('/static/:username'
-      , (req: Request, res: Response, next: NextFunction) => {
-      const decoded: IDecodedToken = req['decoded']
-      if(decoded && req.params.username === decoded.username) {
-        next()
-      } else {
-        throw new ErrorWithStatusCode('Forbidden', 403)
-      }
-    })
+    // this.app.use('/static/:username'
+    //   , (req: Request, res: Response, next: NextFunction) => {
+    //   const decoded: DecodedToken = req['decoded']
+    //   if(decoded && req.params.username === decoded.username) {
+    //     next()
+    //   } else {
+    //     throw new ErrorWithStatusCode('Forbidden', 403)
+    //   }
+    // })
 
     // static 접근
-    this.app.use('/static', express.static(staticDir))
+    // this.app.use('/static', express.static(staticDir))
 
     // graphql middleware
     this.app.use('/graphql', graphqlHTTP((req: Request) => {

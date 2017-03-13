@@ -1,73 +1,51 @@
-interface IUser {
-  id: String
-  username: String
+# 프로필
+type Profile {
+  name: String
   email: String
-  admin: Boolean
-  created_at: String
-  updated_at: String
-}
-
-# 유저 정보
-type UserOutput implements IUser {
-  id: String
-  username: String
-  email: String
-  admin: Boolean
-  created_at: String
-  updated_at: String
-}
-
-# 인증된 유저 정보
-type UserSaving implements IUser {
-  id: String
-  username: String
-  email: String
-  admin: Boolean
-  password: String
-  created_at: String
-  updated_at: String
-}
-
-# 등록할 유저 정보
-input UserInput {
-  username: String!
-  password: String!
-  email: String!
-}
-
-# 노트 제목 정보
-type Headline {
-  uuid: String
-  level: Int
-  hash: String
-  headline: String
-  fullHeadline: String
-  content: String
-}
-
-# 저장할 노트 정보
-input NoteInput {
-  uuid: String!
-  content: String
-  tags: [String]
-  origin: String
-}
-
-# image hash
-type ImageHash {
-  key: String
-  value: String
-}
-
-# 노트 정보
-type NoteOutput {
-  uuid: String
-  content: String
-  tags: [String]
-  origin: String
   url: String
-  heads: [Headline]
-  images: [ImageHash]
-  created_at: String
-  updated_at: String
+  bio: String
 }
+
+input ProfileInput {
+  name: String
+  email: String
+  url: String
+  bio: String
+}
+
+# # 노트 제목 정보
+# type Headline {
+#   uuid: String
+#   level: Int
+#   hash: String
+#   headline: String
+#   fullHeadline: String
+#   content: String
+# }
+
+# # 저장할 노트 정보
+# input NoteInput {
+#   uuid: String!
+#   content: String
+#   tags: [String]
+#   origin: String
+# }
+
+# # image hash
+# type ImageHash {
+#   key: String
+#   value: String
+# }
+
+# # 노트 정보
+# type NoteOutput {
+#   uuid: String
+#   content: String
+#   tags: [String]
+#   origin: String
+#   url: String
+#   heads: [Headline]
+#   images: [ImageHash]
+#   created_at: String
+#   updated_at: String
+# }

@@ -125,72 +125,6 @@ gulp.task('test', ['build'], () => {
 })
 
 /**
- * test.user
- */
-gulp.task('test.user', ['build'], () => {
-  return gulp.src('build/test/test.user.js', {read: false})
-  .pipe(mocha({
-    // report 종류
-    R: 'spec',
-  }))
-})
-
-/**
- * test.static
- */
-gulp.task('test.static', ['build'], () => {
-  return gulp.src('build/test/test.static.js', {read: false})
-  .pipe(mocha({
-    // report 종류
-    R: 'spec',
-  }))
-})
-
-/**
- * test.note
- */
-gulp.task('test.note', ['build'], () => {
-  return gulp.src('build/test/test.note.js', {read: false})
-  .pipe(mocha({
-    // report 종류
-    R: 'spec',
-  }))
-})
-
-/**
- * test.utils
- */
-gulp.task('test.utils', ['build'], () => {
-  return gulp.src('build/test/test.utils.js', {read: false})
-  .pipe(mocha({
-    // report 종류
-    R: 'spec',
-  }))
-})
-
-/**
- * test.NoteRenderer
- */
-gulp.task('test.NoteRenderer', ['build'], () => {
-  return gulp.src('build/test/test.NoteRenderer.js', {read: false})
-  .pipe(mocha({
-    // report 종류
-    R: 'spec',
-  }))
-})
-
-/**
- * test.NoteDocset
- */
-gulp.task('test.NoteDocset', ['build'], () => {
-  return gulp.src('build/test/test.NoteDocset.js', {read: false})
-  .pipe(mocha({
-    // report 종류
-    R: 'spec',
-  }))
-})
-
-/**
  * test.Docset
  */
 gulp.task('test.Docset', ['build'], () => {
@@ -202,52 +136,22 @@ gulp.task('test.Docset', ['build'], () => {
 })
 
 /**
+ * test.Resolver
+ */
+gulp.task('test.Resolver', ['build'], () => {
+  return gulp.src('build/test/test.Resolver.js', {read: false})
+  .pipe(mocha({
+    // report 종류
+    R: 'spec',
+  }))
+})
+
+
+/**
  * test.watch
  */
 gulp.task('test.watch', ['test'], () => {
   gulp.watch('src/**/**', ['test'])
-})
-
-/**
- * test.user.watch
- */
-gulp.task('test.user.watch', ['test.user'], () => {
-  gulp.watch('src/**/**', ['test.user'])
-})
-
-/**
- * test.static.watch
- */
-gulp.task('test.static.watch', ['test.static'], () => {
-  gulp.watch('src/**/**', ['test.static'])
-})
-
-/**
- * test.note.watch
- */
-gulp.task('test.note.watch', ['test.note'], () => {
-  gulp.watch('src/**/**', ['test.note'])
-})
-
-/**
- * test.utils.watch
- */
-gulp.task('test.utils.watch', ['test.utils'], () => {
-  gulp.watch('src/**/**', ['test.utils'])
-})
-
-/**
- * test.NoteRenderer.watch
- */
-gulp.task('test.NoteRenderer.watch', ['test.NoteRenderer'], () => {
-  gulp.watch('src/**/**', ['test.NoteRenderer'])
-})
-
-/**
- * test.NoteDocset.watch
- */
-gulp.task('test.NoteDocset.watch', ['test.NoteDocset'], () => {
-  gulp.watch('src/**/**', ['test.NoteDocset'])
 })
 
 /**
@@ -256,6 +160,14 @@ gulp.task('test.NoteDocset.watch', ['test.NoteDocset'], () => {
 gulp.task('test.Docset.watch', ['test.Docset'], () => {
   gulp.watch('src/**/**', ['test.Docset'])
 })
+
+/**
+ * test.Resolver.watch
+ */
+gulp.task('test.Resolver.watch', ['test.Resolver'], () => {
+  gulp.watch('src/**/**', ['test.Resolver'])
+})
+
 
 /**
  * run main in `package.json`

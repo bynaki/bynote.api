@@ -1,19 +1,17 @@
 type Mutation {
-  # 새로운 유저 생성
-  createUser(
-    input: UserInput!
-  ): UserOutput
+  # 내 프로필 입력
+  setProfile(
+    # 프로필
+    profile: ProfileInput
+  ): Profile
 
   # 인증을 위한 토큰 생성
   createToken(
-    # 인증할 유저 이름
-    username: String!
+    # 해시: 다른 플랫폼의 토큰을 무효화 하기위해 필요하다.
+    hash: String!
     # 인증할 유저 password
     password: String!
     # 만료 기간 (ex: '1d', '5h', '10s')
     expiresIn: String
   ): String
-
-  # 빈 노트 생성
-  createNote: String
 }

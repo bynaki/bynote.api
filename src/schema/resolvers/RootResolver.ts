@@ -7,71 +7,66 @@ import {Request} from 'express'
 import * as _ from 'lodash'
 import {sign, SignOptions} from 'jsonwebtoken'
 import p from 'fourdollar.promisify'
-import {QueryBuilder} from 'knex'
-import {database, encrypt} from '../../utils'
 import {
-  IUserOutput,
-  IUserSaving,
-  IUserInput,
-  INoteInput,
-  INoteOutput,
+  readJson,
+  writeJson,
+  readFile,
+  writeFile,
+  stat,
+  readdir,
+} from '../../fs.promise'
+import {
+  encrypt,
+  Hash,
+  Dictionary,
+} from '../../utils'
+import * as cf from '../../config'
+import {
+  Profile,
 } from '../../interface'
-import {registeredClaim} from '../../config'
 
 
 export default class RootResolver {
   constructor() {
   }
 
-  async user(query: {id?: string, username?: string}): Promise<IUserOutput> {
-    const users = await RootResolver._findUsers(query)
-    if(users.length != 0) {
-      return users[0]
-    } else {
-      throw new Error('missing user!')
-    }
+  //
+  // Query
+
+  echo({message}: {message: string}): string {
+    return `received '${message}`
   }
 
-  async users(): Promise<IUserOutput[]> {
-    return await RootResolver._findUsers({})
+  async getProfile(): Promise<Profile> {
+    const secret = await Dictionary.open(cf.path.secretPath)
+    return secret.get('profile') || {}
   }
 
-  async myProfile(): Promise<IUserSaving> {
-    throw new Error('must be authenticate!!')
-  }
-
-  async getNote(uuid: string): Promise<INoteOutput> {
-    throw new Error('must be authenticate!!')
-  }
+//   async feedList(): Promise<string[]> {
+//     return readdir(dc.feedDir)
+//   }
 
 
   //
   // Mutation
 
-  async createUser({input}: {input: IUserInput}): Promise<IUserOutput> {
-    const userSaving = RootResolver._initUserSaving
-    const knex = await database()
-    if((await knex('user').select().limit(1)).length === 0) {
-      userSaving.admin = true
-    } else if((await RootResolver._findUsers({username: input.username})).length != 0) {
-      throw new Error('username exists')
-    }
-    _.assign(userSaving, input)
-    userSaving.password = encrypt(input.password)
-    const ids: any[] = await knex('user').insert(userSaving)
-    return this.user({id: ids[0]})
+  async setProfile({profile}: {profile: Profile}): Promise<Profile> {
+    const secret = await Dictionary.open(cf.path.secretPath)
+    secret.set('profile'
+      , RootResolver._revision(secret.get('profile'), profile))
+    await secret.save()
+    return secret.get('profile')
   }
 
   async createToken(
-    {username, password, expiresIn}: 
-    {username: string, password: string, expiresIn?: string}
+    {hash, password, expiresIn}: 
+    {hash: string, password: string, expiresIn?: string}
     , req: Request): Promise<string> {
-    const auth = await RootResolver._getUserSaving(username)
-    if(auth.password !== encrypt(password)) {
+    if(await RootResolver._getPassword() !== encrypt(password)) {
       throw new Error('authentication failed')
     }
     const secret = req.app.get('jwt-secret')
-    const options = _.clone(registeredClaim)
+    const options = _.clone(cf.registeredClaim)
     if(expiresIn) {
       options.expiresIn = expiresIn
     }
@@ -79,53 +74,29 @@ export default class RootResolver {
       payload: string | Buffer | Object
       , secretOrPrivateKey: string | Buffer
       , options?: SignOptions) => Promise<string>>(sign)({
-        id: auth.id,
-        username: auth.username,
-        email: auth.email,
-        admin: auth.admin,
+        hash: Hash.set(hash),
       },
       secret,
       options
     )
   }
 
-  async createNote(): Promise<INoteOutput> {
-    throw new Error('must be authenticate!!')
-  }
 
-  async saveNote({input}: {input: INoteInput}): Promise<INoteOutput> {
-    throw new Error('must be authenticate!!')
-  }
+//   async download(feed: string): Promise<void> {
+//     throw new Error('must be authenticate!!')
+//   }
 
 
   //
   // utils
-
-  protected static async _findUsers(query?: any): Promise<IUserOutput[]> {
-    const knex = await database()
-    return knex('user')
-      .select('id', 'username', 'email', 'admin', 'created_at', 'updated_at')
-      .where(query)
+  protected static _revision(dest: Object, src: Object): Object {
+    return _.assignWith(dest, src, (oldVal, srcVal) => {
+      return (srcVal === null)? oldVal : srcVal
+    })
   }
 
-  protected static async _getUserSaving(username: string): Promise<IUserSaving> {
-    const knex = await database()
-    const rows: IUserSaving[] = await knex('user')
-      .select().where({username})
-    if(rows.length !== 1) {
-      throw new Error('must be 1')
-    }
-    return rows[0]
-  }
-
-  private static get _initUserSaving(): IUserSaving {
-    return {
-      username: '',
-      password: '',
-      email: '',
-      admin: false,
-      created_at: Date.now().toString(),
-      updated_at: Date.now().toString(),
-    } as IUserSaving
+  protected static async _getPassword(): Promise<string> {
+    const secret = await Dictionary.open(cf.path.secretPath)
+    return secret.get('password') || encrypt(cf.defaultPassword)
   }
 }

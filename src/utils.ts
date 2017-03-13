@@ -10,8 +10,11 @@ import {createWriteStream} from 'fs'
 import * as _ from 'lodash'
 import 'isomorphic-fetch'
 import {RequestOptions} from 'http'
-import {Extract} from 'tar'
 import * as targz from 'tar.gz'
+import {
+  writeJson,
+  readJson,
+} from './fs.promise'
 import {secret} from './config'
 
 /**
@@ -158,4 +161,58 @@ export function download(
     })
     req.on('error', reject)
   })
+}
+
+
+export class Hash {
+  private static _hash: string;
+
+  static get(): string {
+    return Hash._hash
+  }
+
+  static set(hash: string): string {
+    Hash._hash = hash
+    return Hash._hash
+  }
+}
+
+
+export class Dictionary {
+  private static _dicObjList = {}
+
+  static async open(path: string): Promise<Dictionary> {
+    if(Dictionary._dicObjList[path]) {
+      return Dictionary._dicObjList[path]
+    }
+    try {
+      const dic = await readJson(path)
+      return new Dictionary(path, dic)
+    } catch(err) {
+      return new Dictionary(path, {})
+    }
+  }
+
+  constructor(private _path: string, private _dic: Object) {
+  }
+
+  get(key: string): any {
+    if(key === undefined) {
+      return _.cloneDeep(this._dic)
+    } else {
+      return _.cloneDeep(this._dic[key])
+    }
+  }
+
+  set(key: string | Object, value: any) {
+    if(typeof key === 'string') {
+      this._dic[key] = _.cloneDeep(value)
+    } else {
+      this._dic = _.assign(this._dic, _.cloneDeep(key))
+    }
+  }
+
+  async save(): Promise<void> {
+    return writeJson(this._path, this._dic)
+  }
 }

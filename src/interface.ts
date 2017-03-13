@@ -2,31 +2,15 @@
  * resolvers's interfaces
  */
 
-export interface IUser {
-  id: string
-  username: string
-  email: string
-  admin: boolean
-  created_at: string
-  updated_at: string
+export interface Profile {
+  name?: string
+  email?: string
+  url?: string
+  bio?: string
 }
 
-export interface IUserOutput extends IUser {}
-
-export interface IUserSaving extends IUser {
-  password: string
-}
-
-export interface IUserInput {
-  username: string
-  password: string
-  email: string
-}
-
-export interface IDecodedToken {
-  id: string
-  username: string
-  email: string
+export interface DecodedToken {
+  hash: string
   iat: number   // 생성시간
   exp: number   // 만료시간
   iss: string   // 토큰 발급자

@@ -10,7 +10,7 @@ import {
   ErrorWithStatusCode
 } from '../utils'
 import {
-  IDecodedToken
+  DecodedToken
 } from '../interface'
 import {
   registeredClaim
@@ -30,7 +30,7 @@ export default async function authorize(
 
   try {
     // create a promise that decodes the token
-    const decoded: IDecodedToken = await promisify(jwt.verify)(
+    const decoded: DecodedToken = await promisify(jwt.verify)(
       token, req.app.get('jwt-secret'))
     if(decoded.iss !== registeredClaim.issuer 
       || decoded.sub !== registeredClaim.subject) {

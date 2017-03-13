@@ -5,17 +5,6 @@ type Query {
     message: String!
   ): String
 
-  # 유저 정보 
-  user(
-    # 유저 id 나
-    id: ID
-    # 유저 이름
-    username: String
-  ): UserOutput
-
-  # 유저들의 정보
-  users: [UserOutput]
-
-  # 인증자의 정보
-  myProfile: UserSaving
+  # 내 프로필
+  getProfile: Profile
 }

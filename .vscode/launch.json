@@ -38,12 +38,12 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Test.user",
+      "name": "Test.Docset",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "args": [
         "--colors",
         "--timeout", "999999",
-        "${workspaceRoot}/build/test/test.user.js"
+        "${workspaceRoot}/build/test/test.Docset.js"
       ],
       "cwd": "${workspaceRoot}",
       "runtimeExecutable": null,
@@ -56,12 +56,12 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Test.Docset",
+      "name": "Test.Resolver",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "args": [
         "--colors",
         "--timeout", "999999",
-        "${workspaceRoot}/build/test/test.Docset.js"
+        "${workspaceRoot}/build/test/test.Resolver.js"
       ],
       "cwd": "${workspaceRoot}",
       "runtimeExecutable": null,

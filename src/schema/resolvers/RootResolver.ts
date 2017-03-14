@@ -63,7 +63,7 @@ export default class RootResolver {
     {hash: string, password: string, expiresIn?: string}
     , req: Request): Promise<string> {
     if(await RootResolver._getPassword() !== encrypt(password)) {
-      throw new Error('authentication failed')
+      throw new Error('Authentication failed.')
     }
     const secret = req.app.get('jwt-secret')
     const options = _.clone(cf.registeredClaim)

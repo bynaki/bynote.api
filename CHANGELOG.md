@@ -4,6 +4,7 @@
 
 ### v0.2.0
 - RootResolver > getProfile(), setProfile(), createToken()
+- test.Resolver > createToken(), changePassword()
 
 ### v0.1.1
 - NoteDocset > create

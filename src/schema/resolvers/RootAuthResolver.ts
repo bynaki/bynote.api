@@ -11,7 +11,7 @@ import {
 import * as cf from '../../config'
 
 
-export default class RootAuthResolver extends RootResolver  {
+export default class RootAuthResolver extends RootResolver {
   constructor(private _decodedToken: DecodedToken) {
     super()
   }
@@ -20,7 +20,7 @@ export default class RootAuthResolver extends RootResolver  {
   //
   // Mutation
 
-  async changePassword(oldPwd: string, newPwd: string): Promise<boolean> {
+  async changePassword({oldPwd, newPwd}: {oldPwd: string, newPwd: string}): Promise<boolean> {
     if(await RootResolver._getPassword() !== encrypt(oldPwd)) {
       throw new Error('authentication failed')
     }

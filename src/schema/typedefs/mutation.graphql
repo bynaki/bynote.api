@@ -14,4 +14,12 @@ type Mutation {
     # 만료 기간 (ex: '1d', '5h', '10s')
     expiresIn: String
   ): String
+
+  # 비밀번호 바꾸기
+  changePassword(
+    # 기존 비밀번호
+    oldPwd: String!
+    # 새 비밀번호
+    newPwd: String!
+  ): Boolean
 }

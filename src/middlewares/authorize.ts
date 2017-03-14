@@ -15,6 +15,9 @@ import {
 import {
   registeredClaim
 } from '../config'
+import {
+  Hash
+} from '../utils'
 
 
 export default async function authorize(
@@ -35,6 +38,9 @@ export default async function authorize(
     if(decoded.iss !== registeredClaim.issuer 
       || decoded.sub !== registeredClaim.subject) {
         throw new Error('The wrong token.')
+    }
+    if(decoded.hash !== Hash.get()) {
+      throw new Error('This token expired early.')
     }
     let now = Date.now()
     now = (now - now % 1000) / 1000

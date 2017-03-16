@@ -8,21 +8,15 @@ import * as bodyParser from 'body-parser'
 import {GraphQLError, GraphQLFormattedError} from 'graphql'
 import * as graphqlHTTP from 'express-graphql'
 import * as morgan from 'morgan'
-import {secret, path, url} from './config'
+import * as cf from './config'
 import {schema, RootResolver, RootAuthResolver} from './schema'
 import authorize from './middlewares/authorize'
 import {GraphqlErrorMessages, ErrorWithStatusCode} from './utils'
 import {DecodedToken} from './interface'
-
-const {
-  staticDir,
-  tmpDir,
-} = path
-
-const {
-  staticPathname,
-  tmpPathname,
-} = url
+import {
+  ensureDir
+} from './fs.promise'
+import Docset from './Docset'
 
 
 export class Server {
@@ -42,7 +36,7 @@ export class Server {
     this.app.use(morgan('dev'))
 
     // set the secret key variable for jwt
-    this.app.set('jwt-secret', secret)
+    this.app.set('jwt-secret', cf.secret)
 
     // authentication middleware
     this.app.use(authorize)
@@ -106,3 +100,9 @@ export class Server {
 //     }
 //   }
 // }
+
+async function updateDocset() {
+  const feedInfoList = await Docset.feedInfoList()
+  const docsets = await Docset.docsetList(cf.docset.docsetDir)
+  // docsets[0].name
+}

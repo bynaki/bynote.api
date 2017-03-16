@@ -6,10 +6,17 @@ import 'isomorphic-fetch'
 import * as cheerio from 'cheerio'
 import p from 'fourdollar.promisify'
 import {v1 as newUuid} from 'uuid'
-import {join, extname} from 'path'
+import {
+  join,
+  extname,
+  basename,
+} from 'path'
 import * as request from 'superagent'
 import * as targz from 'tar.gz'
-import {createWriteStream} from 'fs'
+import {
+  createWriteStream,
+  createReadStream,
+} from 'fs'
 import * as Knex from 'knex'
 import * as _ from 'lodash'
 import {parse as parsePlist} from 'plist'
@@ -19,32 +26,38 @@ import {
   stat,
   ensureDir,
   readFile,
+  writeJson,
+  move, 
 } from './fs.promise'
-import {docset as config} from './config'
+import * as cf from './config'
 
 
-export interface FeedInfo {
-  name: string
-  path: string
-  sha: string
-  size: number
-  url: string
-  html_url: string
-  git_url: string
-  download_url: string
-  type: string
-  _links: {
-    self: string
-    git: string
-    html: string
-  }
-}
+// export interface FeedInfo {
+//   name: string
+//   path: string
+//   sha: string
+//   size: number
+//   url: string
+//   html_url: string
+//   git_url: string
+//   download_url: string
+//   type: string
+//   _links: {
+//     self: string
+//     git: string
+//     html: string
+//   }
+// }
 
 export interface DocsetFeed {
   version: string
   ios_version: string
   urls: string[]
   other_versions: string[]
+}
+
+export interface DocsetFeedWithUrl extends DocsetFeed {
+  feed_url: string
 }
 
 export interface FindOption {
@@ -84,11 +97,10 @@ export default class Docset {
   //     "html": "https://github.com/Kapeli/feeds/blob/master/CoffeeScript.xml"
   //   }
   // }
-  static async feedInfoList(): Promise<FeedInfo[]> {
-    const feeds: any[] = await (await fetch(config.feedUrl)).json()
-    return feeds.filter(feed => {
-      return (extname(feed.name) === '.xml')
-    })
+  static async officialFeedUrlList(): Promise<string[]> {
+    const feeds: any[] = await (await fetch(cf.docset.feedUrl)).json()
+    return feeds.filter(feed => (extname(feed.name) === '.xml'))
+      .map(feed => feed.download_url)
   }
 
   static async feedXml(path: string): Promise<string> {
@@ -140,11 +152,14 @@ export default class Docset {
     return map
   }
   
-  static async download(feed: FeedInfo, docsetDir: string) {
-    const urls = (await Docset.feedJson(feed.download_url)).urls
-    await ensureDir(docsetDir)
-    request.get(urls[0])
-    .pipe(targz().createWriteStream(docsetDir))
+  static async download(feedUrl: string, docsetDir: string) {
+    const feedJson = await Docset.feedJson(feedUrl)
+    const docPath = join(docsetDir
+      , basename(feedJson.urls[0], extname(feedJson.urls[0])) + '.docset')
+    await ensureDir(docPath)
+    await writeJson(join(docPath, 'feed.json')
+      , _.assign({feed_url: feedUrl}, feedJson))
+    await request.get(feedJson.urls[0]).pipe(targz().createWriteStream(docsetDir))
   }
 
   static async docsetList(docsetDir: string): Promise<Docset[]> {
@@ -167,7 +182,7 @@ export default class Docset {
   }
 
   static async docsetInfo(path: string): Promise<DocsetInfo> {
-    const infoXml = await readFile(join(path, config.infoPath))
+    const infoXml = await readFile(join(path, cf.docset.infoPath))
     return parsePlist(infoXml.toString())
   }
 
@@ -181,7 +196,7 @@ export default class Docset {
     this._knex = Knex({
       client: 'sqlite3',
       connection: {
-        filename: join(path, config.dbPath)
+        filename: join(path, cf.docset.dbPath)
       }
     })
   }

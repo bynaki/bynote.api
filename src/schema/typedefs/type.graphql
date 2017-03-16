@@ -13,6 +13,11 @@ input ProfileInput {
   bio: String
 }
 
+type Docset {
+  feedList: [String]
+}
+
+
 # # 노트 제목 정보
 # type Headline {
 #   uuid: String

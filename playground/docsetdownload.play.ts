@@ -1,8 +1,10 @@
 import Docset from '../src/Docset'
+import * as cf from '../src/config'
+import {basename} from 'path'
 
 (async () => {
-  const feeds = await Docset.feedList()
-  const mochaFeed = feeds.find(feed => feed.name === 'Chai.xml')
-  await Docset.download(mochaFeed)
-  console.log('finish.')
+  const feedUrls = await Docset.officialFeedUrlList()
+  const chaiFeed = feedUrls.find(feed => basename(feed) === 'Mocha.xml')
+  await Docset.download(chaiFeed, cf.docset.docsetDir)
+  console.log('finish')
 })()

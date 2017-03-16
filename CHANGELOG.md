@@ -5,6 +5,7 @@
 ### v0.2.0
 - RootResolver > getProfile(), setProfile(), createToken()
 - test.Resolver > createToken(), changePassword()
+- Docset > officialFeedUrlList(), feed.json
 
 ### v0.1.1
 - NoteDocset > create

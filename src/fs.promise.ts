@@ -4,6 +4,7 @@ import {
   OpenOptions,
   CopyFilter,
   CopyOptions,
+  MoveOptions,
 } from 'fs-extra'
 import p from 'fourdollar.promisify'
 
@@ -56,5 +57,9 @@ export function remove(dir: string): Promise<void> {
  */
 export function rename(oldPath: string, newPath: string): Promise<void> {
   return p(fs.rename)(oldPath, newPath)
+}
+
+export function move(src: string, dest: string, options?: MoveOptions): Promise<void> {
+  return p(fs.move)(src, dest, options)
 }
 

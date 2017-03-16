@@ -1,6 +1,7 @@
 node_modules/
 build/
 docsets/
+tmp/
 .DS_Store
 *.swp
 npm-debug.log

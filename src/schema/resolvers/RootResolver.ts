@@ -24,10 +24,14 @@ import * as cf from '../../config'
 import {
   Profile,
 } from '../../interface'
+import DocsetResolver from './DocsetResolver'
 
 
 export default class RootResolver {
+  docset: DocsetResolver;
+
   constructor() {
+    this.docset = new DocsetResolver()
   }
 
   //
@@ -41,10 +45,6 @@ export default class RootResolver {
     const secret = await Dictionary.open(cf.path.secretPath)
     return secret.get('profile') || {}
   }
-
-//   async feedList(): Promise<string[]> {
-//     return readdir(dc.feedDir)
-//   }
 
 
   //
@@ -81,10 +81,9 @@ export default class RootResolver {
     )
   }
 
-
-//   async download(feed: string): Promise<void> {
-//     throw new Error('must be authenticate!!')
-//   }
+  async changePassword({oldPwd, newPwd}: {oldPwd: string, newPwd: string}): Promise<boolean> {
+    throw new Error('must be authenticate!!')
+  }
 
 
   //

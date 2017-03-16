@@ -3,7 +3,11 @@
  */
 
 import {expect} from 'chai'
-import {join, extname} from 'path'
+import {
+  join,
+  extname,
+  basename,
+} from 'path'
 import * as cheerio from 'cheerio'
 import {
   exists,
@@ -12,28 +16,31 @@ import {
   remove,
 } from '../fs.promise'
 import Docset, {
-  FeedInfo,
+  DocsetFeedWithUrl,
 } from '../Docset'
 import {docset as config} from '../config'
+import {
+  readJson,
+} from '../fs.promise'
 
 
 describe('test Docset ----------', function() {
   this.timeout(20000)
   before(async () => {
-    feeds = await Docset.feedInfoList()
+    feeds = await Docset.officialFeedUrlList()
   })
-  let feeds: FeedInfo[];
+  let feeds: string[];
 
-  it('Docset.feedInfoList()', async () => {
+  it('Docset.officialFeedUrlList()', async () => {
     expect(feeds).to.have.length.above(0)
     feeds.forEach(feed => {
-      expect(extname(feed.name)).to.eql('.xml')
+      expect(extname(feed)).to.eql('.xml')
     })
   })  
 
   it('Docset.feedXml(): remote', async () => {
-    const feedInfo = feeds.find(feed => (feed.name === 'Chai.xml'))
-    const feed = await Docset.feedXml(feedInfo.download_url)
+    const feedUrl = feeds.find(feed => (basename(feed) === 'Chai.xml'))
+    const feed = await Docset.feedXml(feedUrl)
     const $ = cheerio.load(feed)
     const url = $('entry > url')[0].childNodes[0].nodeValue
     expect(url).to.be.ok
@@ -74,6 +81,20 @@ describe('test Docset ----------', function() {
         '1.9.0',
         '1.8.1' ]
     })
+  })
+
+  // it('Docset.download()', async () => {
+  //   const feedUrl = feeds.find(feed => basename(feed) === 'Chai.xml')
+  //   await Docset.download(feedUrl, config.docsetDir)
+  //   expect(await exists(join(config.docsetDir, 'Chai.docset')))
+  //   .to.be.true
+  // })
+
+  it('feed.json', async () => {
+    const feedPath = join(config.docsetDir, 'Chai.docset', 'feed.json')
+    expect(await exists(feedPath)).to.be.true
+    const feed: DocsetFeedWithUrl = await readJson(feedPath)
+    expect(feed).to.have.property('feed_url')
   })
   
   it('Docset.docsetList()', async () => {
@@ -124,11 +145,4 @@ describe('test Docset ----------', function() {
     const items = await docset.find('a', {fuzzy: true, limit: 10})
     expect(items).to.have.lengthOf(10)
   })
-
-  // it('Docset.download()', async () => {
-  //   const mochaFeed = feeds.find(feed => feed.name === 'Mocha.xml')
-  //   await Docset.download(mochaFeed, config.docsetDir)
-  //   expect(await exists(join(config.docsetDir, 'Mocha.docset')))
-  //   .to.be.true
-  // })
 })

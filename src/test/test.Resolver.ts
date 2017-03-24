@@ -11,6 +11,10 @@ import {
   remove
 } from '../fs.promise'
 import * as cf from '../config'
+import {
+  DocsetInfo,
+  FindResult,
+} from '../interface'
 
 
 describe('test Resolver ----------', () => {
@@ -189,5 +193,216 @@ describe('test Resolver ----------', () => {
       .expect(401)
     expect(res.body).to.have.property('errors')
     expect(res.body.errors[0].message).to.equal('This token expired early.')
+  })
+
+  it('docset.officialFeedUrlList()', async () => {
+    const res: request.Response = await server.post('/graphql')
+      .send({
+        query: `
+        {
+          docset {
+            officialFeedUrlList
+          }
+        }
+        `
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.have.property('docset')
+    expect(res.body.data.docset).to.have.property('officialFeedUrlList')
+    const officialFeedUrlList: string[] = res.body.data.docset.officialFeedUrlList
+    expect(officialFeedUrlList).to.include('https://raw.githubusercontent.com/Kapeli/feeds/master/Bash.xml')
+  })
+
+  it('docset.list', async () => {
+    const res: request.Response = await server.post('/graphql')
+      .send({
+        query: `
+        {
+          docset {
+            list {
+              name
+              keyword
+              scope
+              info {
+                CFBundleIdentifier
+                CFBundleName
+                DocSetPlatformFamily
+              }
+              feed {
+                version
+                ios_version
+                urls
+                other_versions
+                feed_url
+              }
+            }
+          }
+        }
+        `
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.have.property('docset')
+    expect(res.body.data.docset).to.have.property('list')
+    const list: DocsetInfo[] = res.body.data.docset.list
+    const python2 = list.find(doc => doc.name === 'Python 2')
+    expect(python2).to.be.ok
+    expect(python2.name).to.equal('Python 2')
+    expect(python2.keyword).to.equal('python2')
+    expect(python2.scope).to.equal('python2')
+    expect(python2.info).to.be.ok
+    expect(python2.feed).to.be.ok
+    expect(python2.info).to.deep.equal({
+      CFBundleIdentifier: 'python',
+      CFBundleName: 'Python 2',
+      DocSetPlatformFamily: 'python',
+    })
+    expect(python2.feed.feed_url).to
+      .equal('https://raw.githubusercontent.com/Kapeli/feeds/master/Python_2.xml')
+  })
+
+  it('docset.find', async () => {
+    const res: request.Response = await server.post('/graphql')
+      .send({
+        query: `
+        {
+          docset {
+            results: find(
+              name: "edit"
+              ) {
+              id
+              name
+              type
+              path
+              scope
+            }
+          }
+        }
+        `
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.have.property('docset')
+    expect(res.body.data.docset).to.have.property('results')
+    const results: FindResult[] = res.body.data.docset.results
+    expect(results).to.have.length.above(0)
+    results.forEach(item => {
+      expect(/edit/.test(item.name.toLowerCase())).to.be.true
+    })
+    const others: string[] = []
+    results.reduce((preScope, curr) => {
+      if(preScope !== curr.scope) {
+        others.push(curr.scope)
+      }
+      return curr.scope
+    }, '')
+    expect(others).to.have.length.above(1)
+  })
+
+  it('docset.find: scope option', async () => {
+    const res: request.Response = await server.post('/graphql')
+      .send({
+        query: `
+        {
+          docset {
+            results: find(
+              name: "equal"
+              option: {
+                scope: "chai"
+              }
+              ) {
+              id
+              name
+              type
+              path
+              scope
+            }
+          }
+        }
+        `
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.have.property('docset')
+    expect(res.body.data.docset).to.have.property('results')
+    const results: FindResult[] = res.body.data.docset.results
+    expect(results).to.have.length.above(0)
+    results.forEach(item => {
+      expect(/equal/.test(item.name.toLowerCase())).to.be.true
+      expect(item.scope).to.equal('chai')
+    })
+  })
+
+  it('docset.find: 퍼지 검색 option', async () => {
+    const res: request.Response = await server.post('/graphql')
+      .send({
+        query: `
+        {
+          docset {
+            results: find(
+              name: "adeequ"
+              option: {
+                fuzzy: true
+                scope: "chai"
+              }
+              ) {
+              id
+              name
+              type
+              path
+              scope
+            }
+          }
+        }
+        `
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.have.property('docset')
+    expect(res.body.data.docset).to.have.property('results')
+    const results: FindResult[] = res.body.data.docset.results
+    expect(results).to.have.length.above(0)
+    results.forEach(item => {
+      expect(/a.*d.*e.*e.*q.*u/.test(item.name.toLowerCase())).to.be.true
+      expect(item.scope).to.equal('chai')
+    })
+  })
+
+  it('docset.find: limit option', async () => {
+    const res: request.Response = await server.post('/graphql')
+      .send({
+        query: `
+        {
+          docset {
+            results: find(
+              name: "a"
+              option: {
+                fuzzy: true
+                limit: 10
+              }
+              ) {
+              id
+              name
+              type
+              path
+              scope
+            }
+          }
+        }
+        `
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.have.property('docset')
+    expect(res.body.data.docset).to.have.property('results')
+    const results: FindResult[] = res.body.data.docset.results
+    expect(results.length % 10).to.equal(0)
   })
 })

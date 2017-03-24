@@ -13,8 +13,52 @@ input ProfileInput {
   bio: String
 }
 
+
+type DocsetInfoPlist {
+  CFBundleIdentifier: String
+  CFBundleName: String
+  DocSetPlatformFamily: String
+  isDashDocset: Boolean
+  DashDocSetKeyword: String
+}
+
+type DocsetFeedWithUrl {
+  version: String
+  ios_version: String
+  urls: [String]
+  other_versions: [String]
+  feed_url: String
+}
+
+type DocsetInfo {
+  name: String
+  keyword: String
+  scope: String
+  info: DocsetInfoPlist
+  feed: DocsetFeedWithUrl
+}
+
+input FindOptionWithScope {
+  fuzzy: Boolean
+  limit: Int
+  scope: String
+}
+
+type FindResult {
+  id: String
+  name: String
+  type: String
+  path: String
+  scope: String
+}
+
 type Docset {
-  feedList: [String]
+  officialFeedUrlList: [String]
+  list: [DocsetInfo]
+  find(
+    name: String!
+    option: FindOptionWithScope
+  ): [FindResult]
 }
 
 

@@ -10,6 +10,7 @@ import {
   join,
   extname,
   basename,
+  sep,
 } from 'path'
 import * as request from 'superagent'
 import * as targz from 'tar.gz'
@@ -19,65 +20,30 @@ import {
 } from 'fs'
 import * as Knex from 'knex'
 import * as _ from 'lodash'
-import {parse as parsePlist} from 'plist'
-import {parse as parseUrl} from 'url'
+import * as plist from 'plist'
+import {
+  parse as parseUrl,
+} from 'url'
+import * as decompress from 'decompress'
+import * as decompressTargz from 'decompress-targz'
 import {
   readdir,
   stat,
   ensureDir,
   readFile,
   writeJson,
+  readJson,
   move, 
 } from './fs.promise'
 import * as cf from './config'
-
-
-// export interface FeedInfo {
-//   name: string
-//   path: string
-//   sha: string
-//   size: number
-//   url: string
-//   html_url: string
-//   git_url: string
-//   download_url: string
-//   type: string
-//   _links: {
-//     self: string
-//     git: string
-//     html: string
-//   }
-// }
-
-export interface DocsetFeed {
-  version: string
-  ios_version: string
-  urls: string[]
-  other_versions: string[]
-}
-
-export interface DocsetFeedWithUrl extends DocsetFeed {
-  feed_url: string
-}
-
-export interface FindOption {
-  fuzzy?: boolean
-  limit?: number
-}
-
-export interface DocItem {
-  id: string
-  name: string
-  type: string
-  path: string
-}
-
-export interface DocsetInfo {
-  CFBundleIdentifier: string
-  CFBundleName: string
-  DocSetPlatformFamily: string
-  isDashDocset: boolean
-}
+import {
+  DocsetFeed,
+  DocsetFeedWithUrl,
+  DocsetInfoPlist,
+  FindOption,
+  FindResult,
+  DocItem,
+} from './interface'
 
 
 export default class Docset {
@@ -98,7 +64,7 @@ export default class Docset {
   //   }
   // }
   static async officialFeedUrlList(): Promise<string[]> {
-    const feeds: any[] = await (await fetch(cf.docset.feedUrl)).json()
+    const feeds: any[] = await (await fetch(cf.docset.officialFeedUrl)).json()
     return feeds.filter(feed => (extname(feed.name) === '.xml'))
       .map(feed => feed.download_url)
   }
@@ -151,57 +117,108 @@ export default class Docset {
     })
     return map
   }
-  
-  static async download(feedUrl: string, docsetDir: string) {
+
+  static async download(feedUrl: string, docsetDir: string): Promise<void> {
     const feedJson = await Docset.feedJson(feedUrl)
-    const docPath = join(docsetDir
-      , basename(feedJson.urls[0], extname(feedJson.urls[0])) + '.docset')
-    await ensureDir(docPath)
-    await writeJson(join(docPath, 'feed.json')
+    const tgzPath = join(docsetDir, basename(feedJson.urls[0]))
+    await ensureDir(docsetDir)
+    const writer = request.get(feedJson.urls[0]).pipe(createWriteStream(tgzPath))
+    await p(writer.on, writer)('close')
+    const files = await decompress(tgzPath, docsetDir)
+    return writeJson(join(docsetDir, basename(files[0].path), 'feed.json')
       , _.assign({feed_url: feedUrl}, feedJson))
-    await request.get(feedJson.urls[0]).pipe(targz().createWriteStream(docsetDir))
   }
 
   static async docsetList(docsetDir: string): Promise<Docset[]> {
-    const docsetPaths = (await readdir(docsetDir))
+    const promises = (await readdir(docsetDir))
       .filter(filename => extname(filename) === '.docset')
       .map(filename => join(docsetDir, filename))
-    const oldDocsets = Docset._docsetList
-      .filter(docset => _.includes(docsetPaths, docset.path))
-    const promises = docsetPaths
-      .filter(path => !Docset._docsetList.find(docset => docset.path === path))
-      .map(async path => new Docset(path, await Docset.docsetInfo(path)))
-    const newDocsets = await Promise.all(promises)
-    Docset._docsetList = [...oldDocsets, ...newDocsets]
-    return Docset._docsetList
+      .map(async path => {
+        return new Docset(path, await Docset._docsetInfoPlist(path)
+          , await Docset._docsetFeed(path), await Docset._docsetKnex(path))
+      })
+    const docsets = await Promise.all(promises)
+    docsets.map(doc => {
+      if(doc.info.DashDocSetKeyword) {
+        return doc.info.DashDocSetKeyword.toLowerCase()
+      } else {
+        return doc.info.DocSetPlatformFamily.toLowerCase()
+      }
+    })
+    .forEach((key, idx, keys) => {
+      if(keys.indexOf(key, keys.indexOf(key) + 1) !== -1) {
+        docsets[idx]._key = docsets[idx].info
+          .CFBundleName.toLowerCase().replace(/[^\w]+/g, '')
+      } else {
+        docsets[idx]._key = key
+      }
+    })
+    return docsets
   }
-  private static _docsetList: Docset[] = []
 
-  static async get(name: string) {
-    return (await Docset._docsetList).find(docset => docset.name === name)
-  }
-
-  static async docsetInfo(path: string): Promise<DocsetInfo> {
+  private static async _docsetInfoPlist(path: string): Promise<DocsetInfoPlist> {
     const infoXml = await readFile(join(path, cf.docset.infoPath))
-    return parsePlist(infoXml.toString())
+    return plist.parse(infoXml.toString())
   }
 
-  private _path: string;
-  private _info: DocsetInfo;
-  private _knex: Knex;
+  private static async _docsetFeed(path: string): Promise<DocsetFeedWithUrl> {
+    return readJson(join(path, cf.docset.feedPath))
+  }
 
-  constructor(path: string, info: DocsetInfo) {
-    this._path = path
-    this._info = info
-    this._knex = Knex({
+  private static async _docsetKnex(path: string): Promise<Knex> {
+    const knex = Knex({
       client: 'sqlite3',
       connection: {
         filename: join(path, cf.docset.dbPath)
-      }
+      },
     })
+    if(!(await knex.schema.hasTable('searchIndex'))) {
+      const tokensXml = await readFile(join(path, cf.docset.tokensPath))
+      const json = Docset._toJsonTokensXml(tokensXml.toString())
+      await knex.schema.createTable('searchIndex', table => {
+        table.increments('id')
+        table.text('name')
+        table.text('type')
+        table.text('path')
+      })
+      const inserts = json.map(item => knex('searchIndex').insert(item))
+      await Promise.all(inserts)
+    }
+    return knex
   }
 
-  async find(name: string, option: FindOption = {}): Promise<DocItem[]> {
+  private static _toJsonTokensXml(tokensXml: string): DocItem[] {
+    const $ = cheerio.load(tokensXml, {xmlMode: true})
+    const json: DocItem[] = []
+    $('Token').each((idx, elem) => {
+      const item: DocItem = {
+        name: $(elem).find('Name').text(),
+        type: $(elem).find('Type').text(),
+        path: $(elem).find('Path').text(),
+      }
+      if($(elem).find('Anchor').text() !== '') {
+        item.path += '#' + $(elem).find('Anchor').text().replace(/\./g, '%2E')
+      }
+      json.push(item)
+    })
+    return json
+  }
+
+  private _path: string;
+  private _info: DocsetInfoPlist;
+  private _feed: DocsetFeedWithUrl;
+  private _knex: Knex;
+  private _key: string;
+
+  constructor(path: string, info: DocsetInfoPlist
+    , feed: DocsetFeedWithUrl, knex: Knex) {
+    this._path = path
+    this._info = info
+    this._feed = feed
+    this._knex = knex
+  }
+
+  async find(name: string, option: FindOption = {}): Promise<FindResult[]> {
     const vOption = _.assign<FindOption, FindOption>({
       fuzzy: false, limit: 50}, option)
     if(vOption.fuzzy) {
@@ -210,18 +227,34 @@ export default class Docset {
     return this.knex('searchIndex')
       .where(this.knex.raw(`lower("name") like '%${name.toLowerCase()}%'`))
       .limit(vOption.limit)
+      .map<FindResult, FindResult>(result => {
+        result.scope = this.scope
+        return result
+      })
   }
 
   get path(): string {
     return this._path
   }
 
-  get info(): DocsetInfo {
+  get name(): string {
+    return this.info.CFBundleName
+  }
+
+  get keyword(): string {
+    return this._key
+  }
+
+  get scope(): string {
+    return this.keyword
+  }
+
+  get info(): DocsetInfoPlist {
     return this._info
   }
 
-  get name(): string {
-    return this.info.CFBundleName
+  get feed(): DocsetFeedWithUrl {
+    return this._feed
   }
 
   get knex(): Knex {

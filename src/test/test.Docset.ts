@@ -16,16 +16,18 @@ import {
   remove,
 } from '../fs.promise'
 import Docset, {
-  DocsetFeedWithUrl,
 } from '../Docset'
 import {docset as config} from '../config'
 import {
   readJson,
 } from '../fs.promise'
+import {
+  DocsetFeedWithUrl,
+} from '../interface'
 
 
 describe('test Docset ----------', function() {
-  this.timeout(20000)
+  this.timeout(30000)
   before(async () => {
     feeds = await Docset.officialFeedUrlList()
   })
@@ -107,32 +109,20 @@ describe('test Docset ----------', function() {
     expect(chai.name).to.eql('Chai')
   })
 
-  it('Docset.get()', async () => {
-    const chai = await Docset.get('Chai')
-    expect(chai).to.be.ok
-    expect(chai.name).to.eql('Chai')
-  })
-
-  it('Docset.docsetInfo()', async () => {
-    const path = join(config.docsetDir, 'Chai.docset')
-    const info = await Docset.docsetInfo(path)
-    expect(info.CFBundleIdentifier).to.eql('chai')
-    expect(info.CFBundleName).to.eql('Chai')
-    expect(info.DocSetPlatformFamily).to.eql('chai')
-    expect(info.isDashDocset).to.be.true
-  })
-
   it('Docset.find(): 일반 검색', async () => {
-    const docset = await Docset.get('Chai')
+    const docset = (await Docset.docsetList(config.docsetDir))
+      .find(docset => docset.name === 'Chai')
     const items = await docset.find('equal')
     expect(items).to.have.length.above(0)
     items.forEach(item => {
       expect(/equal/.test(item.name.toLowerCase())).to.be.true
+      expect(item.scope).to.equal(docset.scope)
     })
   })
 
   it('Docset.find(): 퍼지 검색', async () => {
-    const docset = await Docset.get('Chai')
+    const docset = (await Docset.docsetList(config.docsetDir))
+      .find(docset => docset.name === 'Chai')
     const items = await docset.find('adeequ', {fuzzy: true})
     expect(items).to.have.length.above(0)
     items.forEach(item => {
@@ -141,8 +131,36 @@ describe('test Docset ----------', function() {
   })
 
   it('Docset.find(): limit: 10', async () => {
-    const docset = await Docset.get('Chai')
+    const docset = (await Docset.docsetList(config.docsetDir))
+      .find(docset => docset.name === 'Chai')
     const items = await docset.find('a', {fuzzy: true, limit: 10})
     expect(items).to.have.lengthOf(10)
+  })
+
+  it('Docset.find(): Python 2', async () => {
+    const docset = (await Docset.docsetList(config.docsetDir))
+      .find(docset => docset.name === 'Python 2')
+    const items = await docset.find('edit')
+    expect(items).to.have.length.above(0)
+    items.forEach(item => {
+      expect(/edit/.test(item.name.toLowerCase())).to.be.true
+      expect(item.scope).to.equal(docset.scope)
+    })
+  })
+
+  function findDocset(docsetList: Docset[], name: string): Docset {
+    return docsetList.find(doc => doc.name === name) 
+  }
+
+  it('Docset.keyword', async () => {
+    const docsets = await Docset.docsetList(config.docsetDir)
+    const chai = findDocset(docsets, 'Chai')
+    expect(chai.keyword).to.equal('chai')
+    const python2 = findDocset(docsets, 'Python 2') 
+    expect(python2.keyword).to.equal('python2')
+    const python3 = findDocset(docsets, 'Python 3') 
+    expect(python3.keyword).to.equal('python3')
+    const apache = findDocset(docsets, 'Apache HTTP Server')
+    expect(apache.keyword).to.equal('apache')
   })
 })

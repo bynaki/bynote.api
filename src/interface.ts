@@ -18,6 +18,54 @@ export interface DecodedToken {
 }
 
 
+export interface DocsetInfoPlist {
+  CFBundleIdentifier: string
+  CFBundleName: string
+  DocSetPlatformFamily: string
+  isDashDocset?: boolean
+  DashDocSetKeyword?: string
+}
+
+export interface DocsetFeed {
+  version: string
+  ios_version: string
+  urls: string[]
+  other_versions: string[]
+}
+
+export interface DocsetFeedWithUrl extends DocsetFeed {
+  feed_url: string
+}
+
+export interface DocsetInfo {
+  name: string
+  keyword: string
+  scope: string
+  info: DocsetInfoPlist
+  feed: DocsetFeedWithUrl
+}
+
+export interface FindOption {
+  fuzzy?: boolean
+  limit?: number
+}
+
+export interface FindOptionWithScope extends FindOption {
+  scope?: string
+}
+
+export interface DocItem {
+  name: string
+  type: string
+  path: string
+}
+
+export interface FindResult extends DocItem {
+  id: string
+  scope: string
+}
+
+
 export interface IHeadline {
   uuid: string
   level: number

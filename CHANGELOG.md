@@ -6,6 +6,7 @@
 - RootResolver > getProfile(), setProfile(), createToken()
 - test.Resolver > createToken(), changePassword()
 - Docset > officialFeedUrlList(), feed.json
+- DocsetResolver > list(), find() && test
 
 ### v0.1.1
 - NoteDocset > create

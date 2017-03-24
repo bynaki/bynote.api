@@ -55,6 +55,10 @@ export class Server {
     // static 접근
     // this.app.use('/static', express.static(staticDir))
 
+    // this.app.use('/docset/:keyword'
+    //   , (req, res, next) => {
+    // })
+
     // graphql middleware
     this.app.use('/graphql', graphqlHTTP((req: Request) => {
       const decodedToken = req['decoded']
@@ -102,7 +106,11 @@ export class Server {
 // }
 
 async function updateDocset() {
-  const feedInfoList = await Docset.feedInfoList()
   const docsets = await Docset.docsetList(cf.docset.docsetDir)
-  // docsets[0].name
+  docsets.forEach(async docset => {
+    const newFeed = await Docset.feedJson(docset.feed.feed_url)
+    if(newFeed.version !== docset.feed.version) {
+      await Docset.download(docset.feed.feed_url, cf.docset.docsetDir)
+    }
+  })
 }

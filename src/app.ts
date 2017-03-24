@@ -8,6 +8,7 @@ import * as bodyParser from 'body-parser'
 import {GraphQLError, GraphQLFormattedError} from 'graphql'
 import * as graphqlHTTP from 'express-graphql'
 import * as morgan from 'morgan'
+import {join} from 'path'
 import * as cf from './config'
 import {schema, RootResolver, RootAuthResolver} from './schema'
 import authorize from './middlewares/authorize'
@@ -55,9 +56,16 @@ export class Server {
     // static 접근
     // this.app.use('/static', express.static(staticDir))
 
-    // this.app.use('/docset/:keyword'
-    //   , (req, res, next) => {
-    // })
+    this.app.use('/docsets/:keyword', async (req, res, next) => {
+      const docsets = await Docset.docsetList(cf.docset.docsetDir)
+      const doc = docsets.find(
+        doc => doc.keyword === (req.params.keyword as string).toLowerCase())
+      if(!doc) {
+        next()
+        return
+      }
+      express.static(join(doc.path, cf.docset.documentsDir))(req, res, next)
+    })
 
     // graphql middleware
     this.app.use('/graphql', graphqlHTTP((req: Request) => {
@@ -76,6 +84,10 @@ export class Server {
         }
       }
     }))
+
+    this.app.use((req, res, next) => {
+      res.status(404).end('Not Found')
+    })
 
     // 내부 에러 처리
     this.app.use((err: ErrorWithStatusCode, req: Request, res: Response, next: NextFunction) => {

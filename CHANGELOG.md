@@ -7,6 +7,7 @@
 - test.Resolver > createToken(), changePassword()
 - Docset > officialFeedUrlList(), feed.json
 - DocsetResolver > list(), find() && test
+- app > docset static url route
 
 ### v0.1.1
 - NoteDocset > create

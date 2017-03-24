@@ -228,6 +228,7 @@ export default class Docset {
       .where(this.knex.raw(`lower("name") like '%${name.toLowerCase()}%'`))
       .limit(vOption.limit)
       .map<FindResult, FindResult>(result => {
+        result.path = `${cf.url.host}/docsets/${this.keyword}/${result.path}`
         result.scope = this.scope
         return result
       })

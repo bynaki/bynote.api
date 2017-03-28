@@ -13,7 +13,7 @@ import {
 import * as cf from '../config'
 import {
   DocsetInfo,
-  FindResult,
+  ExtendedFindResult,
 } from '../interface'
 
 
@@ -148,7 +148,7 @@ describe('test Resolver ----------', () => {
       })
       .expect(200)
       .expect('Content-Type', /json/)
-    console.log(JSON.stringify(res.body.errors, null, '  '))
+    // console.log(JSON.stringify(res.body.errors, null, '  '))
     expect(res.body.data).to.have.property('changePassword')
     expect(res.body.data.changePassword).to.be.true
   })
@@ -252,7 +252,7 @@ describe('test Resolver ----------', () => {
     expect(python2).to.be.ok
     expect(python2.name).to.equal('Python 2')
     expect(python2.keyword).to.equal('python2')
-    expect(python2.scope).to.equal('python2')
+    expect(python2.scope).to.equal('OfficialDocset')
     expect(python2.info).to.be.ok
     expect(python2.feed).to.be.ok
     expect(python2.info).to.deep.equal({
@@ -277,6 +277,7 @@ describe('test Resolver ----------', () => {
               name
               type
               path
+              keyword
               scope
             }
           }
@@ -288,19 +289,56 @@ describe('test Resolver ----------', () => {
     expect(res.body).to.have.property('data')
     expect(res.body.data).to.have.property('docset')
     expect(res.body.data.docset).to.have.property('results')
-    const results: FindResult[] = res.body.data.docset.results
+    const results: ExtendedFindResult[] = res.body.data.docset.results
     expect(results).to.have.length.above(0)
     results.forEach(item => {
       expect(/edit/.test(item.name.toLowerCase())).to.be.true
     })
     const others: string[] = []
     results.reduce((preScope, curr) => {
-      if(preScope !== curr.scope) {
-        others.push(curr.scope)
+      if(preScope !== curr.keyword) {
+        others.push(curr.keyword)
       }
-      return curr.scope
+      return curr.keyword
     }, '')
     expect(others).to.have.length.above(1)
+  })
+
+  it('docset.find: keyword option', async () => {
+    const res: request.Response = await server.post('/graphql')
+      .send({
+        query: `
+        {
+          docset {
+            results: find(
+              name: "equal"
+              option: {
+                keyword: "chai"
+              }
+              ) {
+              id
+              name
+              type
+              path
+              keyword
+              scope
+            }
+          }
+        }
+        `
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.have.property('docset')
+    expect(res.body.data.docset).to.have.property('results')
+    const results: ExtendedFindResult[] = res.body.data.docset.results
+    expect(results).to.have.length.above(0)
+    results.forEach(item => {
+      expect(/equal/.test(item.name.toLowerCase())).to.be.true
+      expect(item.keyword).to.equal('chai')
+      expect(item.scope).to.equal('OfficialDocset')
+    })
   })
 
   it('docset.find: scope option', async () => {
@@ -310,15 +348,16 @@ describe('test Resolver ----------', () => {
         {
           docset {
             results: find(
-              name: "equal"
+              name: "edit"
               option: {
-                scope: "chai"
+                scope: "OfficialDocset"
               }
               ) {
               id
               name
               type
               path
+              keyword
               scope
             }
           }
@@ -330,11 +369,11 @@ describe('test Resolver ----------', () => {
     expect(res.body).to.have.property('data')
     expect(res.body.data).to.have.property('docset')
     expect(res.body.data.docset).to.have.property('results')
-    const results: FindResult[] = res.body.data.docset.results
+    const results: ExtendedFindResult[] = res.body.data.docset.results
     expect(results).to.have.length.above(0)
     results.forEach(item => {
-      expect(/equal/.test(item.name.toLowerCase())).to.be.true
-      expect(item.scope).to.equal('chai')
+      expect(/edit/.test(item.name.toLowerCase())).to.be.true
+      expect(item.scope).to.equal('OfficialDocset')
     })
   })
 
@@ -348,13 +387,14 @@ describe('test Resolver ----------', () => {
               name: "adeequ"
               option: {
                 fuzzy: true
-                scope: "chai"
+                keyword: "chai"
               }
               ) {
               id
               name
               type
               path
+              keyword
               scope
             }
           }
@@ -366,11 +406,12 @@ describe('test Resolver ----------', () => {
     expect(res.body).to.have.property('data')
     expect(res.body.data).to.have.property('docset')
     expect(res.body.data.docset).to.have.property('results')
-    const results: FindResult[] = res.body.data.docset.results
+    const results: ExtendedFindResult[] = res.body.data.docset.results
     expect(results).to.have.length.above(0)
     results.forEach(item => {
       expect(/a.*d.*e.*e.*q.*u/.test(item.name.toLowerCase())).to.be.true
-      expect(item.scope).to.equal('chai')
+      expect(item.keyword).to.equal('chai')
+      expect(item.scope).to.equal('OfficialDocset')
     })
   })
 
@@ -402,7 +443,41 @@ describe('test Resolver ----------', () => {
     expect(res.body).to.have.property('data')
     expect(res.body.data).to.have.property('docset')
     expect(res.body.data.docset).to.have.property('results')
-    const results: FindResult[] = res.body.data.docset.results
+    const results: ExtendedFindResult[] = res.body.data.docset.results
     expect(results.length % 10).to.equal(0)
+  })
+
+  it('docset.find: path', async () => {
+    const res: request.Response = await server.post('/graphql')
+      .send({
+        query: `
+        {
+          docset {
+            results: find(
+              name: "equal"
+              option: {
+                keyword: "chai"
+              }
+              ) {
+              id
+              name
+              type
+              path
+              keyword
+              scope
+            }
+          }
+        }
+        `
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.have.property('docset')
+    expect(res.body.data.docset).to.have.property('results')
+    const results: ExtendedFindResult[] = res.body.data.docset.results
+    expect(results).to.have.length.above(0)
+    const result = results.find(item => item.path === 'http://localhost:3000/docsets/officialdocset/chai/chaijs.com/api/bdd/index.html#//apple_ref/Method/%2Eequal')
+    expect(result).to.be.ok
   })
 })

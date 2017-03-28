@@ -30,17 +30,24 @@ type DocsetFeedWithUrl {
   feed_url: String
 }
 
+enum DocsetScope {
+  OfficialDocset
+  PublicNote
+  PrivateNote
+}
+
 type DocsetInfo {
   name: String
   keyword: String
-  scope: String
+  scope: DocsetScope
   info: DocsetInfoPlist
   feed: DocsetFeedWithUrl
 }
 
-input FindOptionWithScope {
+input FindOption {
   fuzzy: Boolean
   limit: Int
+  keyword: String
   scope: String
 }
 
@@ -49,15 +56,18 @@ type FindResult {
   name: String
   type: String
   path: String
-  scope: String
+  keyword: String
+  scope: DocsetScope
 }
 
 type Docset {
   officialFeedUrlList: [String]
-  list: [DocsetInfo]
+  list(
+    scope: DocsetScope
+  ): [DocsetInfo]
   find(
     name: String!
-    option: FindOptionWithScope
+    option: FindOption
   ): [FindResult]
 }
 

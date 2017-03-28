@@ -10,10 +10,18 @@ import * as graphqlHTTP from 'express-graphql'
 import * as morgan from 'morgan'
 import {join} from 'path'
 import * as cf from './config'
-import {schema, RootResolver, RootAuthResolver} from './schema'
+import {
+  schema, 
+  RootResolver, 
+  RootAuthResolver,
+  DocsetResolver,
+} from './schema'
 import authorize from './middlewares/authorize'
 import {GraphqlErrorMessages, ErrorWithStatusCode} from './utils'
-import {DecodedToken} from './interface'
+import {
+  DecodedToken,
+  DocsetScope,
+} from './interface'
 import {
   ensureDir
 } from './fs.promise'
@@ -56,15 +64,24 @@ export class Server {
     // static 접근
     // this.app.use('/static', express.static(staticDir))
 
-    this.app.use('/docsets/:keyword', async (req, res, next) => {
-      const docsets = await Docset.docsetList(cf.docset.docsetDir)
-      const doc = docsets.find(
-        doc => doc.keyword === (req.params.keyword as string).toLowerCase())
-      if(!doc) {
-        next()
-        return
+    this.app.use(`/docsets/:scope/:keyword`
+      , async (req, res, next) => {
+      const docsetResolver = new DocsetResolver()
+      let doc;
+      switch(req.params.scope) {
+        case DocsetScope.OfficialDocset.toLowerCase(): {
+          const docsets = await docsetResolver.list({scope: DocsetScope.OfficialDocset})
+          doc = docsets.find(
+            doc => doc.keyword === (req.params.keyword as string).toLowerCase()
+          )
+          break
+        }
       }
-      express.static(join(doc.path, cf.docset.documentsDir))(req, res, next)
+      if(doc) {
+        express.static(join(doc.path, cf.docset.documentsDir))(req, res, next)
+      } else {
+        next()
+      }
     })
 
     // graphql middleware
@@ -117,12 +134,12 @@ export class Server {
 //   }
 // }
 
-async function updateDocset() {
-  const docsets = await Docset.docsetList(cf.docset.docsetDir)
-  docsets.forEach(async docset => {
-    const newFeed = await Docset.feedJson(docset.feed.feed_url)
-    if(newFeed.version !== docset.feed.version) {
-      await Docset.download(docset.feed.feed_url, cf.docset.docsetDir)
-    }
-  })
-}
+// async function updateDocset() {
+//   const docsets = await Docset.docsetList(cf.docset.docsetDir)
+//   docsets.forEach(async docset => {
+//     const newFeed = await Docset.feedJson(docset.feed.feed_url)
+//     if(newFeed.version !== docset.feed.version) {
+//       await Docset.download(docset.feed.feed_url, cf.docset.docsetDir)
+//     }
+//   })
+// }

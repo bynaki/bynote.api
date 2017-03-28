@@ -43,6 +43,7 @@ import {
   FindOption,
   FindResult,
   DocItem,
+  DocsetScope,
 } from './interface'
 
 
@@ -137,23 +138,7 @@ export default class Docset {
         return new Docset(path, await Docset._docsetInfoPlist(path)
           , await Docset._docsetFeed(path), await Docset._docsetKnex(path))
       })
-    const docsets = await Promise.all(promises)
-    docsets.map(doc => {
-      if(doc.info.DashDocSetKeyword) {
-        return doc.info.DashDocSetKeyword.toLowerCase()
-      } else {
-        return doc.info.DocSetPlatformFamily.toLowerCase()
-      }
-    })
-    .forEach((key, idx, keys) => {
-      if(keys.indexOf(key, keys.indexOf(key) + 1) !== -1) {
-        docsets[idx]._key = docsets[idx].info
-          .CFBundleName.toLowerCase().replace(/[^\w]+/g, '')
-      } else {
-        docsets[idx]._key = key
-      }
-    })
-    return docsets
+    return Promise.all(promises)
   }
 
   private static async _docsetInfoPlist(path: string): Promise<DocsetInfoPlist> {
@@ -209,6 +194,7 @@ export default class Docset {
   private _feed: DocsetFeedWithUrl;
   private _knex: Knex;
   private _key: string;
+  private _scope: string;
 
   constructor(path: string, info: DocsetInfoPlist
     , feed: DocsetFeedWithUrl, knex: Knex) {
@@ -227,11 +213,11 @@ export default class Docset {
     return this.knex('searchIndex')
       .where(this.knex.raw(`lower("name") like '%${name.toLowerCase()}%'`))
       .limit(vOption.limit)
-      .map<FindResult, FindResult>(result => {
-        result.path = `${cf.url.host}/docsets/${this.keyword}/${result.path}`
-        result.scope = this.scope
-        return result
-      })
+      // .map<FindResult, FindResult>(result => {
+      //   result.path = `${cf.url.host}/docsets/${this.keyword}/${result.path}`
+      //   result.keyword = this.keyword
+      //   return result
+      // })
   }
 
   get path(): string {
@@ -240,14 +226,6 @@ export default class Docset {
 
   get name(): string {
     return this.info.CFBundleName
-  }
-
-  get keyword(): string {
-    return this._key
-  }
-
-  get scope(): string {
-    return this.keyword
   }
 
   get info(): DocsetInfoPlist {
@@ -260,5 +238,21 @@ export default class Docset {
 
   get knex(): Knex {
     return this._knex
+  }
+
+  get keyword(): string {
+    return this._key
+  }
+
+  set keyword(k: string) {
+    this._key = k
+  }
+
+  get scope(): string {
+    return this._scope
+  }
+
+  set scope(s: string) {
+    this._scope = s
   }
 }

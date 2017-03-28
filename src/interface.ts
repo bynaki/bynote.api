@@ -50,7 +50,8 @@ export interface FindOption {
   limit?: number
 }
 
-export interface FindOptionWithScope extends FindOption {
+export interface ExtendedFindOption extends FindOption {
+  keyword?: string
   scope?: string
 }
 
@@ -62,7 +63,23 @@ export interface DocItem {
 
 export interface FindResult extends DocItem {
   id: string
+}
+
+export interface ExtendedFindResult extends FindResult {
+  keyword: string
   scope: string
+}
+
+export class DocsetScope {
+  static get OfficialDocset(): string {
+    return 'OfficialDocset'
+  }
+  static get PublicNote(): string {
+    return 'PublicNote'
+  }
+  static get PrivateNote(): string {
+    return 'PrivateNote'
+  }
 }
 
 

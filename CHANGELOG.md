@@ -8,6 +8,7 @@
 - Docset > officialFeedUrlList(), feed.json
 - DocsetResolver > list(), find() && test
 - app > docset static url route
+- Docset, DocsetResolver 수정
 
 ### v0.1.1
 - NoteDocset > create

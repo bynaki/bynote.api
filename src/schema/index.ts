@@ -8,6 +8,7 @@ import {readFileSync} from 'fs'
 import {resolve} from 'path'
 import RootResolver from './resolvers/RootResolver'
 import RootAuthResolver from './resolvers/RootAuthResolver'
+import DocsetResolver from './resolvers/DocsetResolver'
 
 // schema 파일 합치기
 const matches = glob.sync('typedefs/**/*.+(graphql|gql)', {cwd: __dirname})
@@ -16,4 +17,8 @@ const typeDefs = matches.reduce((pre, match) => {
 }, '')
 
 export const schema = buildSchema(typeDefs)
-export {RootResolver, RootAuthResolver}
+export {
+  RootResolver, 
+  RootAuthResolver,
+  DocsetResolver,
+}

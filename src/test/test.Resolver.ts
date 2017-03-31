@@ -440,6 +440,7 @@ describe('test Resolver ----------', () => {
       })
       .expect('Content-Type', /json/)
       .expect(200)
+      .expect('Access-Control-Allow-Origin', '*')
     expect(res.body).to.have.property('data')
     expect(res.body.data).to.have.property('docset')
     expect(res.body.data.docset).to.have.property('results')

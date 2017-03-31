@@ -81,7 +81,7 @@ export default class NoteDocset {
       await knex.schema.createTable('searchIndex', table => {
         table.increments('id')
         table.text('name')
-        table.string('type')
+        table.text('type')
         table.text('path')
         table.uuid('uuid')
       })

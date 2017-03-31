@@ -5,6 +5,7 @@
 import * as express from 'express'
 import {Request, Response, NextFunction} from 'express'
 import * as bodyParser from 'body-parser'
+import * as cors from 'cors'
 import {GraphQLError, GraphQLFormattedError} from 'graphql'
 import * as graphqlHTTP from 'express-graphql'
 import * as morgan from 'morgan'
@@ -36,6 +37,8 @@ export class Server {
    */
   constructor() {
     this.app = express()
+
+    // this.app.use(cors())
 
     // parse JSON and url-encoded query
     this.app.use(bodyParser.urlencoded({extended: false}))
@@ -85,7 +88,7 @@ export class Server {
     })
 
     // graphql middleware
-    this.app.use('/graphql', graphqlHTTP((req: Request) => {
+    this.app.use('/graphql', cors(), graphqlHTTP((req: Request) => {
       const decodedToken = req['decoded']
       if(decodedToken) {
         return {

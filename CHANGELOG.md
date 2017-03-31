@@ -1,6 +1,6 @@
 # Change Log
 
-## v0.1
+## v0.2
 
 ### v0.2.0
 - RootResolver > getProfile(), setProfile(), createToken()
@@ -9,6 +9,10 @@
 - DocsetResolver > list(), find() && test
 - app > docset static url route
 - Docset, DocsetResolver 수정
+- cors
+
+
+## v0.1
 
 ### v0.1.1
 - NoteDocset > create

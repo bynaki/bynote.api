@@ -11,10 +11,7 @@
     "test.watch": "gulp test.watch",
     "start.watch": "gulp start.watch"
   },
-  "author": {
-    "name": "bynaki",
-    "email": "bynaki@icloud.com"
-  },
+  "author": "bynaki <bynaki@icloud.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/bynaki/bynote.api.git"
@@ -24,6 +21,7 @@
     "@types/body-parser": "0.0.33",
     "@types/chai": "^3.4.34",
     "@types/cheerio": "^0.17.31",
+    "@types/cors": "^2.8.1",
     "@types/express-graphql": "0.0.33",
     "@types/fs-extra": "0.0.37",
     "@types/glob": "^5.0.30",
@@ -56,6 +54,7 @@
   "dependencies": {
     "body-parser": "^1.16.1",
     "cheerio": "^0.22.0",
+    "cors": "^2.8.3",
     "decompress": "^4.0.0",
     "decompress-targz": "^4.0.0",
     "express": "^4.14.0",

@@ -1,5 +1,7 @@
 # byNote API
 
+> 노트 API 이다. GraphQL 로 만들었다.
+
 
 ## Usage
 

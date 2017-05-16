@@ -10,6 +10,7 @@
 - app > docset static url route
 - Docset, DocsetResolver 수정
 - cors
+- README.md > 설명
 
 
 ## v0.1

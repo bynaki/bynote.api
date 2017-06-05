@@ -4,7 +4,7 @@
  * 사용하려면 이 파일을 복사해 config.ts 파일을 만들어야 한다.
  */
 
-import {join} from 'path'
+import {resolve} from 'path'
 
 // jwt 토큰을 만들기 위한 비밀키
 export const secret = '8PoRtSwiTchIngHuB'
@@ -16,6 +16,27 @@ export const registeredClaim = {
   subject: 'authentication',  // 제목
 }
 
-export const path = __dirname
-export const staticPath = join(__dirname, 'static')
-export const tmpPath = join(__dirname, 'tmp')
+export const defaultPassword = 'foobar'
+
+// static url && tmp url
+export const url = {
+  host: 'http://localhost:3000',
+}
+
+// static path && tmp path
+export const path = {
+  staticDir: resolve(__dirname, '../static'),
+  secretPath: resolve(__dirname, 'secret.json'),
+}
+
+export const docset = {
+  officialFeedUrl: 'https://api.github.com/repos/Kapeli/feeds/contents',
+  docsetDir: resolve(__dirname, '../docsets'),
+  documentsDir: 'Contents/Resources/Documents',
+  dbPath: 'Contents/Resources/docSet.dsidx',
+  tokensPath: 'Contents/Resources/tokens.xml',
+  infoPath: 'Contents/info.plist',
+  feedPath: 'feed.json',
+  // dataName: '__data__.json',
+  // feedDir: resolve(__dirname, '../docsets/feed.list'),
+}

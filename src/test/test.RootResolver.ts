@@ -117,7 +117,7 @@ describe('test RootResolver ----------', () => {
           token: createToken(
             hash: "hello"
             password: "foobar"
-            expiresIn: "1s"
+            expiresIn: "10s"
           )
         }
         `
@@ -129,7 +129,7 @@ describe('test RootResolver ----------', () => {
     expect(token01).to.be.not.null
     const decoded = await p(verify)(token01, cf.secret)
     expect(decoded.hash).to.equal('hello')
-    expect(decoded.exp - decoded.iat).to.be.equal(1)
+    expect(decoded.exp - decoded.iat).to.be.equal(10)
   })
   let token01: string;
 

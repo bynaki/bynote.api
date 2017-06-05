@@ -136,10 +136,21 @@ gulp.task('test.Docset', ['build'], () => {
 })
 
 /**
- * test.Resolver
+ * test.RootResolver
  */
-gulp.task('test.Resolver', ['build'], () => {
-  return gulp.src('build/test/test.Resolver.js', {read: false})
+gulp.task('test.RootResolver', ['build'], () => {
+  return gulp.src('build/test/test.RootResolver.js', {read: false})
+  .pipe(mocha({
+    // report 종류
+    R: 'spec',
+  }))
+})
+
+/**
+ * test.DocsetResolver
+ */
+gulp.task('test.DocsetResolver', ['build'], () => {
+  return gulp.src('build/test/test.DocsetResolver.js', {read: false})
   .pipe(mocha({
     // report 종류
     R: 'spec',

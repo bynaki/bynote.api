@@ -8,5 +8,5 @@ type Query {
   # 내 프로필
   getProfile: Profile
 
-  docset: Docset
+  docset: DocsetQuery
 }

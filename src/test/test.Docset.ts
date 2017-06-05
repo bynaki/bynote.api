@@ -55,7 +55,7 @@ describe('test Docset ----------', function() {
     expect(url).to.be.ok
   })
 
-  it('Docset.feedJson()', async () => {
+  it('Docset.feedJson(): local', async () => {
     const feed = await Docset.feedJson(join(__dirname, 'Chai.xml'))
     expect(feed).to.deep.equal({
       version: '4.0.0',
@@ -85,10 +85,22 @@ describe('test Docset ----------', function() {
     })
   })
 
+  it('Docset.feedJson(): remote', async () => {
+    const feed = await Docset.feedJson('https://raw.githubusercontent.com/Kapeli/feeds/master/CoffeeScript.xml')
+    expect(feed.urls[0]).to.equal('http://sanfrancisco.kapeli.com/feeds/CoffeeScript.tgz')
+  })
+
   // it('Docset.download()', async () => {
   //   const feedUrl = feeds.find(feed => basename(feed) === 'Chai.xml')
   //   await Docset.download(feedUrl, config.docsetDir)
   //   expect(await exists(join(config.docsetDir, 'Chai.docset')))
+  //   .to.be.true
+  // })
+
+  // it('Docset.download()', async () => {
+  //   const feedUrl = 'https://raw.githubusercontent.com/Kapeli/feeds/master/CoffeeScript.xml'
+  //   await Docset.download(feedUrl, config.docsetDir)
+  //   expect(await exists(join(config.docsetDir, 'CoffeeScript.docset')))
   //   .to.be.true
   // })
 

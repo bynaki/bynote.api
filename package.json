@@ -9,7 +9,10 @@
     "build": "gulp build",
     "clear": "gulp clear",
     "test.watch": "gulp test.watch",
-    "start.watch": "gulp start.watch"
+    "start.watch": "gulp start.watch",
+    "test.Docset": "gulp test.Docset",
+    "test.RootResolver": "gulp test.RootResolver",
+    "test.DocsetResolver": "gulp test.DocsetResolver"
   },
   "author": "bynaki <bynaki@icloud.com>",
   "repository": {

@@ -22,4 +22,6 @@ type Mutation {
     # 새 비밀번호
     newPwd: String!
   ): Boolean
+
+  docset: DocsetMutation
 }

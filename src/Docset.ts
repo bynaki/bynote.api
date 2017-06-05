@@ -71,9 +71,12 @@ export default class Docset {
   }
 
   static async feedXml(path: string): Promise<string> {
+    const parsed = parseUrl(path)
     if(parseUrl(path).protocol === 'http:' 
       || parseUrl(path).protocol === 'https:') {   // remote
-      return (await fetch(path)).text()
+      const text = await ((await fetch(path)).text())
+      // return (await fetch(path)).text()
+      return text
     } else {                                      // local
       return (await readFile(path)).toString()
     }

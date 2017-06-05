@@ -64,6 +64,15 @@ export default class DocsetResolver {
     return [].concat(...results)
   }
 
+
+  //
+  // Mutation
+
+  async download({feed_url}: {feed_url: string}): Promise<boolean> {
+    throw new Error('must be authenticate!!')
+  }
+
+
   private async _docsetList(scope: string = null): Promise<Docset[]> {
     // Docset 가져오기 && scope 작성하기
     if(!DocsetResolver._officialDocsets) {

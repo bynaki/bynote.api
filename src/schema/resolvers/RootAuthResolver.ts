@@ -4,6 +4,7 @@
 
 import {DecodedToken} from '../../interface'
 import RootResolver from './RootResolver'
+import DocsetAuthResolver from './DocsetAuthResolver'
 import {
   encrypt,
   Dictionary
@@ -12,8 +13,11 @@ import * as cf from '../../config'
 
 
 export default class RootAuthResolver extends RootResolver {
+  docset: DocsetAuthResolver
+  
   constructor(private _decodedToken: DecodedToken) {
     super()
+    this.docset = new DocsetAuthResolver()
   }
 
 

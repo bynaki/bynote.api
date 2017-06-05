@@ -28,11 +28,12 @@ import DocsetResolver from './DocsetResolver'
 
 
 export default class RootResolver {
-  docset: DocsetResolver;
+  docset: DocsetResolver
 
   constructor() {
     this.docset = new DocsetResolver()
   }
+
 
   //
   // Query

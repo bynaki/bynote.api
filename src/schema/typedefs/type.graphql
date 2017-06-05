@@ -60,7 +60,7 @@ type FindResult {
   scope: DocsetScope
 }
 
-type Docset {
+type DocsetQuery {
   officialFeedUrlList: [String]
   list(
     scope: DocsetScope
@@ -69,6 +69,12 @@ type Docset {
     name: String!
     option: FindOption
   ): [FindResult]
+}
+
+type DocsetMutation {
+  download(
+    feed_url: String!
+  ): Boolean
 }
 
 

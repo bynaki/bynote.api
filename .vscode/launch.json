@@ -56,12 +56,30 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Test.Resolver",
+      "name": "Test.RootResolver",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "args": [
         "--colors",
         "--timeout", "999999",
-        "${workspaceRoot}/build/test/test.Resolver.js"
+        "${workspaceRoot}/build/test/test.RootResolver.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "runtimeExecutable": null,
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceRoot}/build/**/*.js"
+      ],
+      "preLaunchTask": "build"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test.DocsetResolver",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "--colors",
+        "--timeout", "999999",
+        "${workspaceRoot}/build/test/test.DocsetResolver.js"
       ],
       "cwd": "${workspaceRoot}",
       "runtimeExecutable": null,

@@ -19,6 +19,7 @@ export default class DocsetAuthResolver extends DocsetResolver {
 
   async download({feed_url}: {feed_url: string}): Promise<boolean> {
     await Docset.download(feed_url, cf.docset.docsetDir)
+    DocsetResolver.resetDocset()
     return true
   }
 }

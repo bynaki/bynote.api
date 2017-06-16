@@ -61,23 +61,49 @@ let _knex = null
 /**
  * graphql에서 쓰는 Error 메시지 포멧과 똑같이
  */
-export class GraphqlErrorMessages {
-  private _errors: {message: string}[]
+// export class GraphqlErrorMessages {
+//   private _errors: {message: string}[]
 
-  constructor(message: string = null) {
+//   constructor(message: string = null) {
+//     this._errors = []
+//     if(message !== null) {
+//       this.push(message)
+//     }
+//   }
+
+//   push(message: string): GraphqlErrorMessages {
+//     this._errors.push({message})
+//     return this
+//   }
+
+//   get errors(): {message: string}[] {
+//     return this._errors 
+//   }
+// }
+
+/**
+ * graphql에서 쓰는 Error 메시지 포멧과 똑같이
+ */
+export class GraphqlErrorMessageList {
+  private _errors: MyErrorFormat[]
+
+  constructor(error: MyErrorFormat = null) {
     this._errors = []
-    if(message !== null) {
-      this.push(message)
+    if(error) {
+      this.push(error)
     }
   }
 
-  push(message: string): GraphqlErrorMessages {
-    this._errors.push({message})
+  push(error: MyErrorFormat): GraphqlErrorMessageList {
+    this._errors.push({
+      message: error.message,
+      statusCode: error.statusCode
+    })
     return this
   }
 
-  get errors(): {message: string}[] {
-    return this._errors 
+  get errors(): MyErrorFormat[] {
+    return this._errors
   }
 }
 
@@ -102,17 +128,18 @@ export function hash(src: string): string {
 /**
  * status code 와 함께 Error 객체
  */
-export class ErrorWithStatusCode extends Error {
-  private _sc: number
-
-  constructor(message?: string, statusCode: number = 500) {
+export class ErrorWithStatusCode extends Error implements MyErrorFormat {
+  constructor(public message: string, public statusCode: number = 500) {
     super(message)
-    this._sc = statusCode
   }
+}
 
-  get statusCode() {
-    return this._sc
-  }
+/**
+ * 밖으로 내보낼 Error 포멧
+ */
+export interface MyErrorFormat {
+  message: string
+  statusCode?: number
 }
 
 /**

@@ -6,7 +6,10 @@ import * as express from 'express'
 import {Request, Response, NextFunction} from 'express'
 import * as bodyParser from 'body-parser'
 import * as cors from 'cors'
-import {GraphQLError, GraphQLFormattedError} from 'graphql'
+import {
+  GraphQLError,
+  GraphQLFormattedError,
+} from 'graphql'
 import * as graphqlHTTP from 'express-graphql'
 import * as morgan from 'morgan'
 import {join} from 'path'
@@ -18,7 +21,12 @@ import {
   DocsetResolver,
 } from './schema'
 import authorize from './middlewares/authorize'
-import {GraphqlErrorMessages, ErrorWithStatusCode} from './utils'
+import {
+  // GraphqlErrorMessages,
+  GraphqlErrorMessageList,
+  ErrorWithStatusCode,
+  MyErrorFormat,
+} from './utils'
 import {
   DecodedToken,
   DocsetScope,
@@ -51,7 +59,7 @@ export class Server {
     this.app.set('jwt-secret', cf.secret)
 
     // authentication middleware
-    this.app.use(authorize)
+    this.app.use(cors(), authorize)
 
     // static 에 접근 할 수 있는지 
     // this.app.use('/static/:username'
@@ -88,22 +96,28 @@ export class Server {
     })
 
     // graphql middleware
-    this.app.use('/graphql', cors(), graphqlHTTP((req: Request) => {
+    this.app.use('/graphql', cors(), (req: Request, res: Response, next: NextFunction) => {
       const decodedToken = req['decoded']
-      if(decodedToken) {
-        return {
-          schema,
-          rootValue: new RootAuthResolver(decodedToken),
-          graphiql: true,
-        }
-      } else {
-        return {
-          schema,
-          rootValue: new RootResolver(),
-          graphiql: true,
-        }
-      }
-    }))
+      graphqlHTTP({
+        schema,
+        rootValue: (decodedToken)? new RootAuthResolver(decodedToken) : new RootResolver(),
+        graphiql: true,
+        formatError: (error: GraphQLError): MyErrorFormat => {
+          if(!error) {
+            throw new Error('Received null or undefined error.')
+          }
+          let statusCode = 500
+          if(error.originalError && (error.originalError as MyErrorFormat).statusCode) {
+            statusCode = (error.originalError as MyErrorFormat).statusCode
+          }
+          res.statusCode = statusCode
+          return {
+            message: error.message,
+            statusCode,
+          }
+        },
+      })(req, res)
+    })
 
     this.app.use((req, res, next) => {
       res.status(404).end('Not Found')
@@ -112,8 +126,9 @@ export class Server {
     // 내부 에러 처리
     this.app.use((err: ErrorWithStatusCode, req: Request, res: Response, next: NextFunction) => {
       let statusCode = (err.statusCode)? err.statusCode : 500
+      const error = new ErrorWithStatusCode(err.message, statusCode)
       res.status(statusCode).json({
-        errors: new GraphqlErrorMessages((err as Error).message).errors
+        errors: new GraphqlErrorMessageList(error).errors
       })
     })
   }
@@ -122,6 +137,7 @@ export class Server {
     return this.app
   }
 }
+
 
 // 디버깅에 활용하자
 // function formatError(req: Request, res: Response, next: NextFunction) {

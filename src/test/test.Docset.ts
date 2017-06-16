@@ -7,13 +7,13 @@ import {
   join,
   extname,
   basename,
+  resolve,
 } from 'path'
 import * as cheerio from 'cheerio'
 import {
   exists,
   writeFile,
   ensureDir,
-  remove,
 } from '../fs.promise'
 import Docset, {
 } from '../Docset'
@@ -24,6 +24,7 @@ import {
 import {
   DocsetFeedWithUrl,
 } from '../interface'
+config.docsetDir = resolve(__dirname, '../../docsets.test')
 
 
 describe('test Docset ----------', function() {
@@ -161,16 +162,4 @@ describe('test Docset ----------', function() {
   function findDocset(docsetList: Docset[], name: string): Docset {
     return docsetList.find(doc => doc.name === name) 
   }
-
-  // it('Docset.keyword', async () => {
-  //   const docsets = await Docset.docsetList(config.docsetDir)
-  //   const chai = findDocset(docsets, 'Chai')
-  //   expect(chai.keyword).to.equal('chai')
-  //   const python2 = findDocset(docsets, 'Python 2') 
-  //   expect(python2.keyword).to.equal('python2')
-  //   const python3 = findDocset(docsets, 'Python 3') 
-  //   expect(python3.keyword).to.equal('python3')
-  //   const apache = findDocset(docsets, 'Apache HTTP Server')
-  //   expect(apache.keyword).to.equal('apache')
-  // })
 })

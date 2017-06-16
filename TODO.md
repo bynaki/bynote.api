@@ -1,3 +1,3 @@
 # TODO
 
-- test할때 docsets 경로를 다른경로로 설정해야 한다.
+- python 2 docset은 있고 python 3 docset은 없을 때 test 해보아라

@@ -6,6 +6,9 @@ import {expect} from 'chai'
 import * as request from 'supertest'
 import server from './testserver'
 import {verify} from 'jsonwebtoken'
+import {
+  resolve,
+} from 'path'
 import p from 'fourdollar.promisify'
 import {
   remove
@@ -15,6 +18,7 @@ import {
   DocsetInfo,
   ExtendedFindResult,
 } from '../interface'
+cf.docset.docsetDir = resolve(__dirname, '../../docsets.test')
 
 
 describe('test RootResolver ----------', () => {

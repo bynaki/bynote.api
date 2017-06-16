@@ -8,10 +8,11 @@ import {verify} from 'jsonwebtoken'
 import p from 'fourdollar.promisify'
 import {
   join,
+  resolve,
 } from 'path'
 import {
-  exists,
   remove,
+  exists,
 } from '../fs.promise'
 import server from './testserver'
 import * as cf from '../config'
@@ -19,6 +20,7 @@ import {
   DocsetInfo,
   ExtendedFindResult,
 } from '../interface'
+cf.docset.docsetDir = resolve(__dirname, '../../docsets.test')
 
 
 describe('test DocsetResolver ----------', function() {
@@ -342,7 +344,7 @@ describe('test DocsetResolver ----------', function() {
         `
       })
       .expect('Content-Type', /json/)
-      .expect(200)
+      .expect(401)
     expect(res.body).to.have.property('data')
     expect(res.body.data).to.have.property('docset')
     expect(res.body.data.docset).to.have.property('download')

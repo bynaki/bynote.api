@@ -13,6 +13,9 @@ import {
   DocsetScope,
 } from '../../interface'
 import * as cf from '../../config'
+import {
+  ErrorWithStatusCode,
+} from '../../utils'
 
 
 export default class DocsetResolver {
@@ -69,7 +72,8 @@ export default class DocsetResolver {
   // Mutation
 
   async download({feed_url}: {feed_url: string}): Promise<boolean> {
-    throw new Error('must be authenticate!!')
+    // throw new Error('must be authenticate!!')
+    throw new ErrorWithStatusCode('must be authenticate!!', 401)
   }
 
 

@@ -1,6 +1,7 @@
 node_modules/
 build/
 docsets/
+docsets.test/
 tmp/
 .DS_Store
 *.swp

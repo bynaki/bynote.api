@@ -33,7 +33,8 @@ import {
   readFile,
   writeJson,
   readJson,
-  move, 
+  move,
+  remove,
 } from './fs.promise'
 import * as cf from './config'
 import {
@@ -221,6 +222,10 @@ export default class Docset {
       //   result.keyword = this.keyword
       //   return result
       // })
+  }
+
+  async delete(): Promise<void> {
+    return remove(this.path)
   }
 
   get path(): string {

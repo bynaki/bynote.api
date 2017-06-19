@@ -17,14 +17,14 @@ import {
 } from '../fs.promise'
 import Docset, {
 } from '../Docset'
-import {docset as config} from '../config'
+import * as cf from '../config'
 import {
   readJson,
 } from '../fs.promise'
 import {
   DocsetFeedWithUrl,
 } from '../interface'
-config.docsetDir = resolve(__dirname, '../../docsets.test')
+cf.docset.docsetDir = resolve(__dirname, '../../docsets.test')
 
 
 describe('test Docset ----------', function() {
@@ -93,37 +93,54 @@ describe('test Docset ----------', function() {
 
   // it('Docset.download()', async () => {
   //   const feedUrl = feeds.find(feed => basename(feed) === 'Chai.xml')
-  //   await Docset.download(feedUrl, config.docsetDir)
-  //   expect(await exists(join(config.docsetDir, 'Chai.docset')))
+  //   await Docset.download(feedUrl, cf.docset.docsetDir)
+  //   expect(await exists(join(cf.docset.docsetDir, 'Chai.docset')))
   //   .to.be.true
   // })
 
   // it('Docset.download()', async () => {
   //   const feedUrl = 'https://raw.githubusercontent.com/Kapeli/feeds/master/CoffeeScript.xml'
-  //   await Docset.download(feedUrl, config.docsetDir)
-  //   expect(await exists(join(config.docsetDir, 'CoffeeScript.docset')))
+  //   await Docset.download(feedUrl, cf.docset.docsetDir)
+  //   expect(await exists(join(cf.docset.docsetDir, 'CoffeeScript.docset')))
   //   .to.be.true
   // })
 
+  it('Docset.download()', async () => {
+    const feedUrl = feeds.find(feed => basename(feed) === 'Gulp.xml')
+    await Docset.download(feedUrl, cf.docset.docsetDir)
+    expect(await exists(join(cf.docset.docsetDir, 'Gulp.docset')))
+    .to.be.true
+  })
+
+  it('Docset#delete()', async () => {
+    await (await Docset.docsetList(cf.docset.docsetDir))
+    .find(doc => doc.name === 'Gulp')
+    .delete()
+    expect(await exists(join(cf.docset.docsetDir, 'Gulp.docset')))
+    .to.be.false
+    expect((await Docset.docsetList(cf.docset.docsetDir))
+    .find(doc => doc.keyword === 'gulp')).to.be.undefined
+  })
+
   it('feed.json', async () => {
-    const feedPath = join(config.docsetDir, 'Chai.docset', 'feed.json')
+    const feedPath = join(cf.docset.docsetDir, 'Chai.docset', 'feed.json')
     expect(await exists(feedPath)).to.be.true
     const feed: DocsetFeedWithUrl = await readJson(feedPath)
     expect(feed).to.have.property('feed_url')
   })
   
   it('Docset.docsetList()', async () => {
-    const docsets = await Docset.docsetList(config.docsetDir)
+    const docsets = await Docset.docsetList(cf.docset.docsetDir)
     expect(docsets).to.have.length.above(0)
     const chai = docsets.find(docset => {
-      return docset.path === join(config.docsetDir, 'Chai.docset')
+      return docset.path === join(cf.docset.docsetDir, 'Chai.docset')
     })
     expect(chai).to.be.ok
     expect(chai.name).to.eql('Chai')
   })
 
   it('Docset.find(): 일반 검색', async () => {
-    const docset = (await Docset.docsetList(config.docsetDir))
+    const docset = (await Docset.docsetList(cf.docset.docsetDir))
       .find(docset => docset.name === 'Chai')
     const items = await docset.find('equal')
     expect(items).to.have.length.above(0)
@@ -133,7 +150,7 @@ describe('test Docset ----------', function() {
   })
 
   it('Docset.find(): 퍼지 검색', async () => {
-    const docset = (await Docset.docsetList(config.docsetDir))
+    const docset = (await Docset.docsetList(cf.docset.docsetDir))
       .find(docset => docset.name === 'Chai')
     const items = await docset.find('adeequ', {fuzzy: true})
     expect(items).to.have.length.above(0)
@@ -143,14 +160,14 @@ describe('test Docset ----------', function() {
   })
 
   it('Docset.find(): limit: 10', async () => {
-    const docset = (await Docset.docsetList(config.docsetDir))
+    const docset = (await Docset.docsetList(cf.docset.docsetDir))
       .find(docset => docset.name === 'Chai')
     const items = await docset.find('a', {fuzzy: true, limit: 10})
     expect(items).to.have.lengthOf(10)
   })
 
   it('Docset.find(): Python 2', async () => {
-    const docset = (await Docset.docsetList(config.docsetDir))
+    const docset = (await Docset.docsetList(cf.docset.docsetDir))
       .find(docset => docset.name === 'Python 2')
     const items = await docset.find('edit')
     expect(items).to.have.length.above(0)
@@ -159,7 +176,7 @@ describe('test Docset ----------', function() {
     })
   })
 
-  function findDocset(docsetList: Docset[], name: string): Docset {
-    return docsetList.find(doc => doc.name === name) 
-  }
+  // function findDocset(docsetList: Docset[], name: string): Docset {
+  //   return docsetList.find(doc => doc.name === name) 
+  // }
 })

@@ -75,6 +75,9 @@ type DocsetMutation {
   download(
     feed_url: String!
   ): Boolean
+  delete(
+    keyword: String!
+  ): Boolean
 }
 
 

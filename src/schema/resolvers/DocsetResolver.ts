@@ -72,12 +72,15 @@ export default class DocsetResolver {
   // Mutation
 
   async download({feed_url}: {feed_url: string}): Promise<boolean> {
-    // throw new Error('must be authenticate!!')
+    throw new ErrorWithStatusCode('must be authenticate!!', 401)
+  }
+
+  async delete({keyword}: {keyword: string}): Promise<boolean> {
     throw new ErrorWithStatusCode('must be authenticate!!', 401)
   }
 
 
-  private async _docsetList(scope: string = null): Promise<Docset[]> {
+  protected async _docsetList(scope: string = null): Promise<Docset[]> {
     // Docset 가져오기 && scope 작성하기
     if(!DocsetResolver._officialDocsets) {
       DocsetResolver._officialDocsets = await Docset.docsetList(cf.docset.docsetDir)

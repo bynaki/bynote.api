@@ -354,26 +354,49 @@ describe('test DocsetResolver ----------', function() {
     expect(res.body.errors[0].message).to.be.equal('must be authenticate!!')
   })
 
-  // it('docset.download: success', async () => {
-  //   const res: request.Response = await server.post('/graphql')
-  //     .set('x-access-token', token)
-  //     .send({
-  //       query: `
-  //       mutation {
-  //         docset {
-  //           download(feed_url: "https://raw.githubusercontent.com/Kapeli/feeds/master/CoffeeScript.xml")
-  //         }
-  //       }
-  //       `
-  //     })
-  //     .expect('Content-Type', /json/)
-  //     .expect(200)
-  //   expect(res.body).to.have.property('data')
-  //   expect(res.body.data).to.have.property('docset')
-  //   expect(res.body.data.docset).to.have.property('download')
-  //   const download = res.body.data.docset.download
-  //   expect(download).to.be.true
-  //   expect(await exists(join(cf.docset.docsetDir, 'CoffeeScript.docset')))
-  //   .to.be.true
-  // })
+  it('docset.download: success', async () => {
+    const res: request.Response = await server.post('/graphql')
+      .set('x-access-token', token)
+      .send({
+        query: `
+        mutation {
+          docset {
+            download(feed_url: "https://raw.githubusercontent.com/Kapeli/feeds/master/Gulp.xml")
+          }
+        }
+        `
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.have.property('docset')
+    expect(res.body.data.docset).to.have.property('download')
+    const download = res.body.data.docset.download
+    expect(download).to.be.true
+    expect(await exists(join(cf.docset.docsetDir, 'Gulp.docset')))
+    .to.be.true
+  })
+
+  it('docset.delete: success', async () => {
+    const res: request.Response = await server.post('/graphql')
+      .set('x-access-token', token)
+      .send({
+        query: `
+        mutation {
+          docset {
+            delete(keyword: "gulp")
+          }
+        }
+        `
+      })
+      .expect('Content-Type', /json/)
+      .expect(200)
+    expect(res.body).to.have.property('data')
+    expect(res.body.data).to.have.property('docset')
+    expect(res.body.data.docset).to.have.property('delete')
+    const result = res.body.data.docset.delete
+    expect(result).to.be.true
+    expect(await exists(join(cf.docset.docsetDir, 'Gulp.docset')))
+    .to.be.false
+  })
 })

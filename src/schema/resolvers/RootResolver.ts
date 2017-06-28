@@ -19,6 +19,7 @@ import {
   encrypt,
   Hash,
   Dictionary,
+  ErrorWithStatusCode,
 } from '../../utils'
 import * as cf from '../../config'
 import {
@@ -83,7 +84,7 @@ export default class RootResolver {
   }
 
   async changePassword({oldPwd, newPwd}: {oldPwd: string, newPwd: string}): Promise<boolean> {
-    throw new Error('must be authenticate!!')
+    throw new ErrorWithStatusCode('must be authenticate!!', 401)
   }
 
 

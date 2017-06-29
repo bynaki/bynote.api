@@ -5,7 +5,10 @@
 
 import {Request} from 'express'
 import * as _ from 'lodash'
-import {sign, SignOptions} from 'jsonwebtoken'
+import {
+  sign,
+  SignOptions,
+} from 'jsonwebtoken'
 import p from 'fourdollar.promisify'
 import {
   readJson,
